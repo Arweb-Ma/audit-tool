@@ -109,5 +109,43 @@
     ],
     "submittedAt": "2026-08-24T00:09:37.120Z",
     "status": "NEW_UNTOUCHED"
+  },
+  {
+    "id": "lead_1788901962217_4th7i",
+    "name": "Sarah Mansouri",
+    "email": "sarah@growthcompany.com",
+    "whatsapp": "+212612345678",
+    "sector": "E-Commerce & Retail",
+    "websiteUrl": "https://stripe.com/",
+    "score": 94,
+    "bottlenecks": [
+      {
+        "id": "slow-lcp",
+        "title": "Mobile Load Delay Costing Sales Conversions",
+        "severity": "warning",
+        "impactText": "Your mobile page takes 2.8s to render the main content. Google studies show pages exceeding 2.5s lose ~16% of potential clients before the main CTA renders.",
+        "estimatedRevenueLoss": "-16% Monthly Leads",
+        "recommendation": "Optimize hero asset rendering, implement Next.js edge caching, and defer blocking scripts."
+      },
+      {
+        "id": "basic-jsonld",
+        "title": "Underutilized AI Search Entity Schemas",
+        "severity": "info",
+        "impactText": "Detected basic schema (Generic). Lacks enriched Product/Service and FAQ schemas for direct AI answer placement.",
+        "estimatedRevenueLoss": "15% Uncaptured Search Impressions",
+        "recommendation": "Expand structured data with rich FAQs, Service offers, and geo-targeted metadata."
+      },
+      {
+        "id": "mobile-viewport",
+        "title": "Sub-Optimal Mobile Viewport & Layout Shift",
+        "severity": "info",
+        "impactText": "Mobile layout shifts cause mis-clicks during user navigation, leading to frustrating drop-offs on checkout and consultation buttons.",
+        "estimatedRevenueLoss": "10-15% Mobile Drop-Off",
+        "recommendation": "Implement strict aspect-ratio containers for imagery and fix un-sized dynamic elements."
+      }
+    ],
+    "submittedAt": "2026-09-08T21:12:42.217Z",
+    "recipientEmail": "contact@arweb.ma",
+    "status": "NOUVEAU"
   }
 ]

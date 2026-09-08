@@ -2,8 +2,11 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Arweb — Audit de Performance Web & Générateur de Leads',
-  description: 'Outil d\'audit gratuit pour analyser la vitesse mobile, le SEO multilingue (FR/EN) et l\'indexation IA (GEO) par Arweb Agence Digitale (arweb.ca).',
+  title: 'Arweb — Audit de Performance Web & Générateur de Croissance',
+  description: 'Analysez instantanément la vitesse mobile, le SEO multilingue et la mesure des conversions par Arweb — Agence digitale au Maroc & région MENA (arweb.ma).',
+  icons: {
+    icon: '/favicon.svg',
+  },
 };
 
 export default function RootLayout({
@@ -13,13 +16,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="fr" className="scroll-smooth">
-      <head>
-        <link
-          href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,600;12..96,700;12..96,800&family=Inter:wght@300;400;500;600;700&display=swap"
-          rel="stylesheet"
-        />
-      </head>
-      <body className="bg-[#f9f8f6] text-[#1a1a18] antialiased min-h-screen selection:bg-[#0052cc] selection:text-white">
+      <body className="bg-white text-[#202124] antialiased min-h-screen selection:bg-[#0b57d0] selection:text-white">
         {children}
       </body>
     </html>

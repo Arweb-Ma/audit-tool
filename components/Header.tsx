@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { ArrowUpRight, MessageSquare, ShieldCheck, Zap } from 'lucide-react';
+import Image from 'next/image';
 
 interface HeaderProps {
   onDirectConsultation?: () => void;
@@ -9,49 +9,39 @@ interface HeaderProps {
 
 export const Header: React.FC<HeaderProps> = () => {
   return (
-    <header className="sticky top-0 z-50 w-full bg-[#f9f8f6]/95 backdrop-blur-md border-b border-[#e2e0db]">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
-        {/* Brand Logo - Arweb.ca style */}
-        <a href="https://arweb.ca" target="_blank" rel="noopener noreferrer" className="flex items-center space-x-2 group">
-          <div className="font-heading font-extrabold text-2xl tracking-tight text-[#111110] flex items-center">
-            Arweb<span className="text-[#0052cc]">.ca</span>
-          </div>
-          <span className="hidden sm:inline-block text-[11px] font-semibold px-2 py-0.5 rounded bg-[#e8f0ff] text-[#0052cc] border border-[#0052cc]/20">
-            AUDIT TOOL
-          </span>
+    <header className="h-[76px] sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-[#dadce0] flex items-center justify-between px-4 sm:px-8 lg:px-16 transition-all">
+      {/* Brand Logo - Official SVG from main-site */}
+      <a href="https://arweb.ma" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3" aria-label="Arweb — accueil">
+        <img src="/logo.svg" width={144} height={40} alt="Arweb" className="h-9 w-auto" />
+      </a>
+
+      {/* Nav Links */}
+      <nav className="hidden md:flex items-center gap-6 lg:gap-8 text-sm text-[#202124] font-medium" aria-label="Navigation principale">
+        <a href="https://arweb.ma/#solutions" target="_blank" rel="noopener noreferrer" className="hover:text-[#0b57d0] transition-colors">
+          Solutions
         </a>
+        <a href="https://arweb.ma/blog/" target="_blank" rel="noopener noreferrer" className="hover:text-[#0b57d0] transition-colors">
+          Ressources
+        </a>
+        <a href="https://arweb.ma/#methode" target="_blank" rel="noopener noreferrer" className="hover:text-[#0b57d0] transition-colors">
+          Notre méthode
+        </a>
+        <a href="https://arweb.ma/#engagements" target="_blank" rel="noopener noreferrer" className="hover:text-[#0b57d0] transition-colors">
+          Pourquoi Arweb
+        </a>
+        <a href="https://arweb.ma/#faq" target="_blank" rel="noopener noreferrer" className="hover:text-[#0b57d0] transition-colors">
+          FAQ
+        </a>
+      </nav>
 
-        {/* Center Nav Links */}
-        <div className="hidden md:flex items-center space-x-8 text-sm text-[#6b6b69] font-medium">
-          <a href="https://arweb.ca" target="_blank" rel="noopener noreferrer" className="hover:text-[#1a1a18] transition-colors">
-            Services
-          </a>
-          <a href="https://arweb.ca" target="_blank" rel="noopener noreferrer" className="hover:text-[#1a1a18] transition-colors">
-            Notre Approche
-          </a>
-          <a href="https://arweb.ca" target="_blank" rel="noopener noreferrer" className="hover:text-[#1a1a18] transition-colors">
-            Réalisations
-          </a>
-          <span className="inline-flex items-center space-x-1 px-3 py-1 rounded-full bg-[#f0ede8] border border-[#e2e0db] text-[#111110] text-xs font-semibold">
-            <span className="w-2 h-2 rounded-full bg-[#059669] animate-pulse"></span>
-            <span>PageSpeed V5 & GEO AI</span>
-          </span>
-        </div>
-
-        {/* Action Button */}
-        <div className="flex items-center space-x-3">
-          <a
-            href="https://wa.me/212600000000?text=Bonjour%20l'équipe%20Arweb.ca!%20Je%20souhaite%20un%20audit%20de%20performance%20et%20de%20conversion."
-            target="_blank"
-            rel="noopener noreferrer"
-            className="btn-black text-xs sm:text-sm px-4 py-2.5 rounded-md hover:bg-[#2a2a28] transition-all flex items-center space-x-2"
-          >
-            <MessageSquare className="w-4 h-4 text-white" />
-            <span className="hidden sm:inline">Parler à un Stratège</span>
-            <span className="sm:hidden">WhatsApp</span>
-            <ArrowUpRight className="w-3.5 h-3.5 opacity-70" />
-          </a>
-        </div>
+      {/* CTA Button */}
+      <div className="flex items-center gap-3">
+        <a
+          href="#audit-form"
+          className="button button-compact font-bold text-sm"
+        >
+          Audit gratuit
+        </a>
       </div>
     </header>
   );

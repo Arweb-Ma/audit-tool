@@ -18,7 +18,7 @@ const SECTORS = [
   'SaaS & Logiciel Tech',
   'Santé, Cliniques & Médical',
   'Services Professionnels & Conseil',
-  'Finance & Assurance',
+  'Finance, Banque & Assurance',
   'Hôtellerie & Tourisme',
   'Autre Secteur d\'Activité',
 ];
@@ -78,95 +78,95 @@ export const LeadCaptureModal: React.FC<LeadCaptureModalProps> = ({
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-[#111110]/50 backdrop-blur-sm overflow-y-auto">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-[#202124]/40 backdrop-blur-sm overflow-y-auto">
         <motion.div
           initial={{ opacity: 0, scale: 0.95, y: 15 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 15 }}
-          className="w-full max-w-lg bg-white rounded-2xl p-6 sm:p-8 border border-[#e2e0db] shadow-modal relative text-[#1a1a18] my-8"
+          className="w-full max-w-lg bg-white rounded-[28px] p-6 sm:p-8 border border-[#dadce0] shadow-[0_16px_44px_rgba(32,33,36,0.16)] relative text-[#202124] my-8"
         >
           {/* Close button */}
           <button
             onClick={onClose}
-            className="absolute top-5 right-5 p-2 rounded-full bg-[#f0ede8] hover:bg-[#e8e6e1] text-[#6b6b69] hover:text-[#111110] transition-colors"
+            className="absolute top-5 right-5 p-2 rounded-full bg-[#f8f9fa] hover:bg-[#dadce0] text-[#5f6368] hover:text-[#202124] transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
 
           {/* Modal Header */}
-          <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-[#e8f0ff] text-[#0052cc] border border-[#0052cc]/30 text-xs font-semibold mb-3">
-            <Lock className="w-3.5 h-3.5 text-[#0052cc]" />
-            <span>Plan d'Action Technique Complet</span>
+          <div className="inline-flex items-center space-x-2 px-3.5 py-1 rounded-full bg-[#e8f0fe] text-[#0b57d0] border border-[#0b57d0]/20 text-xs font-bold mb-3">
+            <Lock className="w-3.5 h-3.5" />
+            <span>Plan d'action & recommandations</span>
           </div>
 
-          <h3 className="font-heading text-2xl sm:text-3xl font-extrabold text-[#111110] tracking-tight leading-tight">
-            Recevez Votre <span className="underline-accent text-[#0052cc]">Rapport Arweb.ca</span>
+          <h3 className="text-2xl sm:text-3xl font-medium text-[#202124] tracking-tight leading-tight">
+            Recevez votre diagnostic <span className="text-[#0b57d0]">Arweb</span>
           </h3>
 
-          <p className="text-xs sm:text-sm text-[#6b6b69] mt-2 mb-6">
-            Obtenez un rapport détaillé de 12 pages avec les corrections de code recommandées pour <strong className="text-[#0052cc]">{auditResult.domain}</strong> et un entretien avec notre architecte web.
+          <p className="text-sm text-[#5f6368] mt-2 mb-6">
+            Obtenez une analyse détaillée des freins de <strong className="text-[#0b57d0]">{auditResult.domain}</strong> et échangez directement avec notre équipe technique.
           </p>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Nom Complet */}
             <div>
-              <label className="block text-xs font-semibold text-[#1a1a18] mb-1.5">Nom & Prénom *</label>
+              <label className="block text-xs font-bold text-[#202124] mb-1.5 uppercase tracking-wider">Nom & Prénom *</label>
               <div className="relative">
-                <User className="w-4 h-4 text-[#6b6b69] absolute left-3.5 top-3.5" />
+                <User className="w-4 h-4 text-[#5f6368] absolute left-3.5 top-3.5" />
                 <input
                   type="text"
                   required
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="ex: Julien Tremblay"
-                  className="w-full pl-10 pr-4 py-3 rounded-lg bg-[#f9f8f6] border border-[#e2e0db] text-[#1a1a18] placeholder-[#b0ada6] text-sm focus:outline-none focus:border-[#0052cc] focus:bg-white"
+                  placeholder="ex: Karim Benali"
+                  className="w-full pl-10 pr-4 py-3 rounded-full bg-[#f8f9fa] border border-[#dadce0] text-[#202124] placeholder-[#5f6368] text-sm focus:outline-none focus:border-[#0b57d0] focus:bg-white transition-all"
                 />
               </div>
             </div>
 
             {/* Courriel */}
             <div>
-              <label className="block text-xs font-semibold text-[#1a1a18] mb-1.5">Adresse Courriel Professionnelle *</label>
+              <label className="block text-xs font-bold text-[#202124] mb-1.5 uppercase tracking-wider">Courriel professionnel *</label>
               <div className="relative">
-                <Mail className="w-4 h-4 text-[#6b6b69] absolute left-3.5 top-3.5" />
+                <Mail className="w-4 h-4 text-[#5f6368] absolute left-3.5 top-3.5" />
                 <input
                   type="email"
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="nom@entreprise.ca"
-                  className="w-full pl-10 pr-4 py-3 rounded-lg bg-[#f9f8f6] border border-[#e2e0db] text-[#1a1a18] placeholder-[#b0ada6] text-sm focus:outline-none focus:border-[#0052cc] focus:bg-white"
+                  placeholder="contact@entreprise.ma"
+                  className="w-full pl-10 pr-4 py-3 rounded-full bg-[#f8f9fa] border border-[#dadce0] text-[#202124] placeholder-[#5f6368] text-sm focus:outline-none focus:border-[#0b57d0] focus:bg-white transition-all"
                 />
               </div>
             </div>
 
             {/* Numéro WhatsApp */}
             <div>
-              <label className="block text-xs font-semibold text-[#1a1a18] mb-1.5">
-                Numéro WhatsApp (pour l'envoi instantané du rapport) *
+              <label className="block text-xs font-bold text-[#202124] mb-1.5 uppercase tracking-wider">
+                Numéro WhatsApp (pour l'envoi du rapport) *
               </label>
               <div className="relative">
-                <Phone className="w-4 h-4 text-[#059669] absolute left-3.5 top-3.5" />
+                <Phone className="w-4 h-4 text-[#137333] absolute left-3.5 top-3.5" />
                 <input
                   type="tel"
                   required
                   value={whatsapp}
                   onChange={(e) => setWhatsapp(e.target.value)}
-                  placeholder="+1 514 000-0000 ou +212 6..."
-                  className="w-full pl-10 pr-4 py-3 rounded-lg bg-[#f9f8f6] border border-[#e2e0db] text-[#1a1a18] placeholder-[#b0ada6] text-sm focus:outline-none focus:border-[#059669] focus:bg-white font-mono"
+                  placeholder="+212 6 00 00 00 00"
+                  className="w-full pl-10 pr-4 py-3 rounded-full bg-[#f8f9fa] border border-[#dadce0] text-[#202124] placeholder-[#5f6368] text-sm focus:outline-none focus:border-[#137333] focus:bg-white transition-all font-mono"
                 />
               </div>
             </div>
 
             {/* Secteur d'activité */}
             <div>
-              <label className="block text-xs font-semibold text-[#1a1a18] mb-1.5">Secteur d'Activité</label>
+              <label className="block text-xs font-bold text-[#202124] mb-1.5 uppercase tracking-wider">Secteur d'activité</label>
               <div className="relative">
-                <Building2 className="w-4 h-4 text-[#6b6b69] absolute left-3.5 top-3.5" />
+                <Building2 className="w-4 h-4 text-[#5f6368] absolute left-3.5 top-3.5" />
                 <select
                   value={sector}
                   onChange={(e) => setSector(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 rounded-lg bg-[#f9f8f6] border border-[#e2e0db] text-[#1a1a18] text-sm focus:outline-none focus:border-[#0052cc]"
+                  className="w-full pl-10 pr-4 py-3 rounded-full bg-[#f8f9fa] border border-[#dadce0] text-[#202124] text-sm focus:outline-none focus:border-[#0b57d0]"
                 >
                   {SECTORS.map((s) => (
                     <option key={s} value={s}>
@@ -177,35 +177,35 @@ export const LeadCaptureModal: React.FC<LeadCaptureModalProps> = ({
               </div>
             </div>
 
-            {errorMsg && <p className="text-xs text-[#dc2626] font-medium pt-1">{errorMsg}</p>}
+            {errorMsg && <p className="text-xs text-[#b3261e] font-medium pt-1">{errorMsg}</p>}
 
             {/* Submit Button */}
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full py-3.5 rounded-lg bg-[#111110] hover:bg-[#2a2a28] text-white font-bold text-sm sm:text-base transition-all duration-200 flex items-center justify-center space-x-2 disabled:opacity-50 shadow-md"
+              className="w-full button min-h-[50px] font-bold text-base shadow-sm disabled:opacity-50"
             >
               {isSubmitting ? (
                 <>
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  <span>Déverrouillage en cours...</span>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                  <span>Envoi en cours...</span>
                 </>
               ) : (
                 <>
-                  <span>Débloquer l'Audit Technique Gratuit</span>
-                  <ArrowRight className="w-4 h-4" />
+                  <span>Débloquer mon audit gratuit</span>
+                  <ArrowRight className="w-4 h-4 ml-2" />
                 </>
               )}
             </button>
           </form>
 
           {/* Privacy Note */}
-          <div className="mt-4 pt-3 border-t border-[#e2e0db] flex items-center justify-between text-[11px] text-[#6b6b69]">
+          <div className="mt-5 pt-3 border-t border-[#dadce0] flex items-center justify-between text-xs text-[#5f6368]">
             <span className="flex items-center space-x-1">
-              <ShieldCheck className="w-3.5 h-3.5 text-[#059669]" />
-              <span>100% Confidentiel • Zéro Spam</span>
+              <ShieldCheck className="w-3.5 h-3.5 text-[#137333]" />
+              <span>Confidentialité garantie · Sans engagement</span>
             </span>
-            <span className="font-mono text-[#0052cc]">Arweb.ca Certifié</span>
+            <span className="font-mono text-[#0b57d0]">contact@arweb.ma</span>
           </div>
         </motion.div>
       </div>

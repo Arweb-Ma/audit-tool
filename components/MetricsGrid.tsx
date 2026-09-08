@@ -17,7 +17,7 @@ export const MetricsGrid: React.FC<MetricsGridProps> = ({ metrics }) => {
       status: metrics.lcp.status,
       icon: Clock,
       target: 'Cible ≤ 2.5s',
-      desc: 'Temps d\'affichage du visuel ou titre principal de la page.',
+      desc: 'Affichage du contenu principal (titre / image héroïque).',
     },
     {
       title: 'Cumulative Layout Shift (CLS)',
@@ -25,7 +25,7 @@ export const MetricsGrid: React.FC<MetricsGridProps> = ({ metrics }) => {
       status: metrics.cls.status,
       icon: Layers,
       target: 'Cible ≤ 0.1',
-      desc: 'Stabilité visuelle empêchant les clics involontaires.',
+      desc: 'Stabilité visuelle pour éviter les clics involontaires.',
     },
     {
       title: 'First Contentful Paint (FCP)',
@@ -33,7 +33,7 @@ export const MetricsGrid: React.FC<MetricsGridProps> = ({ metrics }) => {
       status: metrics.fcp.status,
       icon: Zap,
       target: 'Cible ≤ 1.8s',
-      desc: 'Premier élément visuel textuel ou graphique affiché.',
+      desc: 'Apparition du premier élément visible à l\'écran.',
     },
     {
       title: 'Time to First Byte (TTFB)',
@@ -41,7 +41,7 @@ export const MetricsGrid: React.FC<MetricsGridProps> = ({ metrics }) => {
       status: metrics.ttfb.status,
       icon: Server,
       target: 'Cible ≤ 800ms',
-      desc: 'Vitesse de réponse initiale du serveur web.',
+      desc: 'Temps de réponse initial du serveur d\'hébergement.',
     },
     {
       title: 'Speed Index',
@@ -49,36 +49,36 @@ export const MetricsGrid: React.FC<MetricsGridProps> = ({ metrics }) => {
       status: metrics.speedIndex.status,
       icon: Gauge,
       target: 'Cible ≤ 3.4s',
-      desc: 'Vitesse globale de remplissage visuel de l\'écran.',
+      desc: 'Vitesse de remplissage visuel global de la page.',
     },
     {
-      title: 'Comportement Mobile Viewport',
-      value: metrics.mobileFriendly ? 'Optimisé' : 'Balise Manquante',
+      title: 'Viewport Mobile Responsive',
+      value: metrics.mobileFriendly ? 'Optimisé' : 'Balise manquante',
       status: metrics.mobileFriendly ? 'good' : 'poor',
       icon: Smartphone,
-      target: 'Requis Mobile',
+      target: 'Requis mobile',
       desc: 'Indispensable pour l\'indexation Google Mobile-First.',
     },
   ];
 
   const getStatusBadge = (status: string) => {
     if (status === 'good') {
-      return <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-[#ecfdf5] text-[#059669] border border-[#059669]/30">OPTIMAL</span>;
+      return <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-[#e6f4ea] text-[#137333]">OPTIMAL</span>;
     }
     if (status === 'needs-improvement') {
-      return <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-[#fffbe6] text-[#d97706] border border-[#d97706]/30">MOYEN</span>;
+      return <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-[#fef7e0] text-[#b06000]">MOYEN</span>;
     }
-    return <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-[#fef2f2] text-[#dc2626] border border-[#dc2626]/30">LENT</span>;
+    return <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-[#fce8e6] text-[#b3261e]">LENT</span>;
   };
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="font-heading text-xl sm:text-2xl font-bold text-[#111110] tracking-tight flex items-center space-x-2">
-          <Zap className="w-5 h-5 text-[#0052cc]" />
+        <h2 className="text-xl sm:text-2xl font-medium text-[#202124] tracking-tight flex items-center space-x-2">
+          <Zap className="w-5 h-5 text-[#0b57d0]" />
           <span>Métriques Core Web Vitals & Vitesse</span>
         </h2>
-        <span className="text-xs text-[#6b6b69] font-mono">Stratégie Mobile 2026</span>
+        <span className="text-xs text-[#5f6368] font-mono">Standards Google 2026</span>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -90,21 +90,21 @@ export const MetricsGrid: React.FC<MetricsGridProps> = ({ metrics }) => {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.25, delay: index * 0.05 }}
-              className="card-light card-light-hover p-5 rounded-2xl bg-white border border-[#e2e0db]"
+              className="p-5 rounded-2xl bg-white border border-[#dadce0] hover:border-[#0b57d0] transition-all shadow-sm"
             >
               <div className="flex items-center justify-between mb-3">
-                <div className="w-10 h-10 rounded-xl bg-[#e8f0ff] border border-[#0052cc]/20 flex items-center justify-center text-[#0052cc]">
+                <div className="w-10 h-10 rounded-xl bg-[#e8f0fe] flex items-center justify-center text-[#0b57d0]">
                   <Icon className="w-5 h-5" />
                 </div>
                 {getStatusBadge(card.status)}
               </div>
 
-              <p className="text-xs font-semibold text-[#6b6b69]">{card.title}</p>
+              <p className="text-xs font-semibold text-[#5f6368]">{card.title}</p>
               <div className="flex items-baseline space-x-2 my-1">
-                <span className="font-heading text-2xl font-extrabold text-[#111110]">{card.value}</span>
-                <span className="text-[11px] text-[#b0ada6] font-mono">({card.target})</span>
+                <span className="text-2xl font-medium tracking-tight text-[#202124]">{card.value}</span>
+                <span className="text-[11px] text-[#5f6368] font-mono">({card.target})</span>
               </div>
-              <p className="text-[11px] text-[#6b6b69] leading-snug">{card.desc}</p>
+              <p className="text-xs text-[#5f6368] leading-snug">{card.desc}</p>
             </motion.div>
           );
         })}

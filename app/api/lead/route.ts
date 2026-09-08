@@ -8,7 +8,7 @@ export async function POST(req: NextRequest) {
     const { name, email, whatsapp, sector, websiteUrl, score, bottlenecks } = body;
 
     if (!name || !email || !whatsapp) {
-      return NextResponse.json({ error: 'Name, email, and WhatsApp number are required.' }, { status: 400 });
+      return NextResponse.json({ error: 'Le nom, l\'adresse courriel et le numéro WhatsApp sont requis.' }, { status: 400 });
     }
 
     const leadRecord = {
@@ -16,12 +16,13 @@ export async function POST(req: NextRequest) {
       name: name.trim(),
       email: email.trim().toLowerCase(),
       whatsapp: whatsapp.trim(),
-      sector: sector || 'General Business',
+      sector: sector || 'Entreprise générale',
       websiteUrl: websiteUrl || '',
       score: score || 0,
       bottlenecks: bottlenecks || [],
       submittedAt: new Date().toISOString(),
-      status: 'NEW_UNTOUCHED',
+      recipientEmail: 'contact@arweb.ma',
+      status: 'NOUVEAU',
     };
 
     // Store locally in data/leads.json
@@ -43,21 +44,22 @@ export async function POST(req: NextRequest) {
       console.warn('Failed to save to local file database:', err);
     }
 
-    // Generate WhatsApp direct link prefilled with lead & website details for Arweb consultation
-    const cleanDomain = websiteUrl ? websiteUrl.replace(/^https?:\/\//, '').split('/')[0] : 'website';
+    // Generate WhatsApp link tailored to Arweb
+    const cleanDomain = websiteUrl ? websiteUrl.replace(/^https?:\/\//, '').split('/')[0] : 'site web';
     const waText = encodeURIComponent(
-      `Hello Arweb Team! 👋\n\nI just ran an instant performance check for my website (*${cleanDomain}*).\nMy audit score is *${score}/100*.\n\nName: ${name}\nSector: ${sector || 'Business'}\nWhatsApp: ${whatsapp}\n\nI'd like to claim my free deep technical audit & custom growth proposal!`
+      `Bonjour l'équipe Arweb! 👋\n\nJe viens de lancer un diagnostic pour mon site (*${cleanDomain}*).\nScore d'audit : *${score}/100*.\n\nNom: ${name}\nSecteur: ${sector || 'Entreprise'}\nEmail: ${email}\nWhatsApp: ${whatsapp}\n\nJe souhaite recevoir mon plan d'action et échanger sur nos priorités.`
     );
-    const whatsappLink = `https://wa.me/212600000000?text=${waText}`; // Replaceable agency number
+    const whatsappLink = `https://wa.me/212600000000?text=${waText}`;
 
     return NextResponse.json({
       success: true,
-      message: 'Lead captured successfully! Deep audit unlocked.',
+      message: 'Lead capturé avec succès.',
       leadId: leadRecord.id,
       whatsappLink,
+      contactEmail: 'contact@arweb.ma',
     });
   } catch (error: any) {
     console.error('Lead submission error:', error);
-    return NextResponse.json({ error: 'Failed to record lead.' }, { status: 500 });
+    return NextResponse.json({ error: 'Échec de l\'enregistrement.' }, { status: 500 });
   }
 }

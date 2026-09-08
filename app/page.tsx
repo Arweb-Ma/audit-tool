@@ -12,7 +12,7 @@ import { LeadCaptureModal } from '@/components/LeadCaptureModal';
 import { LeadSuccessState } from '@/components/LeadSuccessState';
 import { AgencyCTA } from '@/components/AgencyCTA';
 import { AuditResult } from '@/app/api/analyze/route';
-import { AlertCircle, Lock, Sparkles, MessageSquare } from 'lucide-react';
+import { AlertCircle, Lock, Sparkles, MessageSquare, Mail } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 export default function Home() {
@@ -68,8 +68,8 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f9f8f6] text-[#1a1a18] flex flex-col font-sans selection:bg-[#0052cc] selection:text-white">
-      {/* Header matching arweb.ca */}
+    <div className="min-h-screen bg-white text-[#202124] flex flex-col font-sans selection:bg-[#0b57d0] selection:text-white">
+      {/* Header */}
       <Header />
 
       {/* Main Hero & Input */}
@@ -79,8 +79,8 @@ export default function Home() {
         {/* Error Notification */}
         {errorMsg && (
           <div className="max-w-2xl mx-auto px-4 mb-8">
-            <div className="p-4 rounded-xl bg-[#fef2f2] border border-[#dc2626]/30 text-[#dc2626] flex items-center space-x-3 text-sm font-medium">
-              <AlertCircle className="w-5 h-5 text-[#dc2626] flex-shrink-0" />
+            <div className="p-4 rounded-2xl bg-[#fce8e6] border border-[#b3261e]/30 text-[#b3261e] flex items-center space-x-3 text-sm font-medium">
+              <AlertCircle className="w-5 h-5 text-[#b3261e] flex-shrink-0" />
               <span>{errorMsg}</span>
             </div>
           </div>
@@ -113,44 +113,40 @@ export default function Home() {
                 {/* Multilingual SEO & GEO AI Readiness */}
                 <GeoAiReadiness seoAndGeo={auditResult.seoAndGeo} />
 
-                {/* Gated Lead Capture Banner matching arweb.ca */}
+                {/* Gated Lead Capture Banner */}
                 <motion.div
                   initial={{ opacity: 0, y: 15 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="card-light p-8 sm:p-10 rounded-2xl border border-[#0052cc]/30 bg-white text-center space-y-4 shadow-card"
+                  className="p-8 sm:p-12 rounded-[28px] border border-[#dadce0] bg-[#f0f6ff] text-center space-y-4 shadow-sm"
                 >
-                  <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-[#e8f0ff] text-[#0052cc] border border-[#0052cc]/20 text-xs font-semibold">
+                  <div className="inline-flex items-center space-x-2 px-3.5 py-1 rounded-full bg-white text-[#0b57d0] border border-[#dadce0] text-xs font-bold">
                     <Lock className="w-3.5 h-3.5" />
-                    <span>Audit Technique Détaillé & Recommandations Code</span>
+                    <span>Plan d'action & recommandations personnalisées</span>
                   </div>
 
-                  <h3 className="font-heading text-2xl sm:text-4xl font-extrabold text-[#111110] tracking-tight">
-                    Obtenez Les Corrections De Code Pour <span className="text-[#0052cc] font-mono">{auditResult.domain}</span>
+                  <h3 className="text-2xl sm:text-4xl font-medium tracking-tight text-[#202124]">
+                    Besoin d'un accompagnement technique pour <span className="text-[#0b57d0] font-semibold">{auditResult.domain}</span> ?
                   </h3>
 
-                  <p className="text-sm sm:text-base text-[#6b6b69] max-w-2xl mx-auto leading-relaxed">
-                    Débloquez notre proposition de croissance de 12 pages, les optimisations techniques approfondies et demandez un entretien individuel gratuit avec un architecte web Arweb.ca.
+                  <p className="text-base sm:text-lg text-[#5f6368] max-w-2xl mx-auto leading-relaxed">
+                    Débloquez votre synthèse technique complète et échangez sans engagement avec un expert de l'équipe Arweb.
                   </p>
 
                   <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-4">
                     <button
                       onClick={() => setIsLeadModalOpen(true)}
-                      className="btn-blue py-4 px-8 text-sm sm:text-base shadow-md w-full sm:w-auto justify-center"
+                      className="button min-h-[52px] px-8 text-base shadow-sm w-full sm:w-auto justify-center"
                     >
-                      <Sparkles className="w-5 h-5 text-white" />
-                      <span>Débloquer Le Rapport Complet (Gratuit)</span>
+                      <Sparkles className="w-5 h-5 text-white mr-2" />
+                      <span>Débloquer mon plan d'action (Gratuit)</span>
                     </button>
 
                     <a
-                      href={`https://wa.me/212600000000?text=Bonjour%20Arweb.ca!%20Je%20viens%20d'analyser%20${encodeURIComponent(
-                        auditResult.domain
-                      )}%20(Score:%20${auditResult.overallScore}/100).%20Je%20souhaite%20réserver%20un%20échange!`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="btn-outline py-4 px-6 text-sm sm:text-base w-full sm:w-auto justify-center"
+                      href={`mailto:contact@arweb.ma?subject=Diagnostic%20de%20performance%20pour%20${encodeURIComponent(auditResult.domain)}`}
+                      className="button button-outline min-h-[52px] px-7 text-base w-full sm:w-auto justify-center"
                     >
-                      <MessageSquare className="w-5 h-5 text-[#059669]" />
-                      <span>Échanger Sur WhatsApp</span>
+                      <Mail className="w-5 h-5 text-[#0b57d0] mr-2" />
+                      <span>Écrire à contact@arweb.ma</span>
                     </a>
                   </div>
                 </motion.div>

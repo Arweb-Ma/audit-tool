@@ -11,60 +11,60 @@ interface GeoAiReadinessProps {
 export const GeoAiReadiness: React.FC<GeoAiReadinessProps> = ({ seoAndGeo }) => {
   const checkItems = [
     {
-      title: 'Données Structurées Recherche IA (JSON-LD)',
+      title: 'Données structurées IA (JSON-LD Schema)',
       status: seoAndGeo.hasJsonLdSchema,
       detail: seoAndGeo.hasJsonLdSchema
-        ? `Types détectés : ${seoAndGeo.schemaTypes.join(', ') || 'Objet Schéma'}`
-        : 'Balise JSON-LD manquante',
-      desc: 'Indispensable pour permettre à ChatGPT Search, Gemini et Google AI Overviews d\'extraire vos services.',
+        ? `Types détectés : ${seoAndGeo.schemaTypes.join(', ') || 'Schéma actif'}`
+        : 'Balise JSON-LD non détectée',
+      desc: 'Permet à Google AI Overviews, Perplexity et ChatGPT Search de recommander vos services.',
     },
     {
-      title: 'Ciblage SEO Multilingue & Régional (Hreflang)',
+      title: 'Ciblage multilingue & régional (Hreflang)',
       status: seoAndGeo.hasHreflang,
       detail: seoAndGeo.detectedLangs.length > 0 ? `Langues : ${seoAndGeo.detectedLangs.join(', ')}` : 'Langue unique',
-      desc: 'Permet de cibler les acheteurs régionaux en Français, Anglais et Arabe (FR/EN/AR).',
+      desc: 'Optimisé pour capter des prospects au Maroc et dans la région MENA (FR/EN/AR).',
     },
     {
-      title: 'Aperçu Partage Réseaux Sociaux (OpenGraph)',
+      title: 'Vignettes de partage WhatsApp & LinkedIn (OpenGraph)',
       status: seoAndGeo.hasOpenGraph,
-      detail: seoAndGeo.hasOpenGraph ? 'Balises OpenGraph présentes' : 'Balise og:title ou og:image manquante',
-      desc: 'Génère une vignette attrayante lors du partage de vos liens sur WhatsApp, LinkedIn & Twitter.',
+      detail: seoAndGeo.hasOpenGraph ? 'Balises OpenGraph actives' : 'Balises og:image manquantes',
+      desc: 'Affiche un aperçu professionnel lors du partage de vos liens par messagerie ou réseaux.',
     },
     {
-      title: 'Métadonnées Cartes X / Twitter',
+      title: 'Métadonnées cartes X / Twitter',
       status: seoAndGeo.hasTwitterCard,
-      detail: seoAndGeo.hasTwitterCard ? 'Carte Twitter active' : 'Balise twitter:card manquante',
-      desc: 'Maximise le taux de clic lorsque vos liens sont partagés sur les médias sociaux.',
+      detail: seoAndGeo.hasTwitterCard ? 'Carte Twitter active' : 'Balise twitter:card non détectée',
+      desc: 'Maximise l\'impact visuel et le taux de clic sur vos partages sociaux.',
     },
     {
-      title: 'Titre & Méta-Description SEO',
+      title: 'Balises Title & Meta Description Google',
       status: seoAndGeo.hasTitle && seoAndGeo.hasMetaDescription,
-      detail: seoAndGeo.hasTitle && seoAndGeo.hasMetaDescription ? 'Balises Méta Complètes' : 'Description méta manquante',
-      desc: 'Détermine le taux de clic (CTR) dans les résultats de recherche Google.',
+      detail: seoAndGeo.hasTitle && seoAndGeo.hasMetaDescription ? 'Balises complètes' : 'Description manquante',
+      desc: 'Détermine la clarté de votre offre dans les pages de résultats de recherche (SERP).',
     },
     {
-      title: 'Protocole Sécurisé HTTPS / SSL',
+      title: 'Sécurité et certificat SSL (HTTPS)',
       status: seoAndGeo.isHttps,
-      detail: seoAndGeo.isHttps ? 'HTTPS Sécurisé Actif' : 'Protocole HTTP Non Sécurisé',
-      desc: 'Signal de sécurité obligatoire pour la confiance navigateur et le classement SEO.',
+      detail: seoAndGeo.isHttps ? 'HTTPS Sécurisé' : 'Protocole HTTP Non Sécurisé',
+      desc: 'Indispensable pour la confiance de vos visiteurs et le référencement Google.',
     },
   ];
 
   return (
-    <div className="card-light p-6 sm:p-8 rounded-2xl bg-white border border-[#e2e0db] space-y-6">
+    <div className="p-6 sm:p-8 rounded-[28px] bg-white border border-[#dadce0] space-y-6 shadow-sm">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <div className="inline-flex items-center space-x-2 text-xs font-semibold text-[#0052cc] uppercase tracking-widest mb-1">
+          <div className="inline-flex items-center space-x-2 text-xs font-bold text-[#0b57d0] uppercase tracking-wider mb-1">
             <Sparkles className="w-4 h-4" />
-            <span>Préparatif IA & SEO Régional</span>
+            <span>Visibilité & Indexation IA</span>
           </div>
-          <h3 className="font-heading text-xl sm:text-2xl font-bold text-[#111110]">
-            Indexation Recherche IA & Référencement Multilingue
+          <h3 className="text-xl sm:text-2xl font-medium tracking-tight text-[#202124]">
+            SEO Multilingue & Préparation Recherche IA
           </h3>
         </div>
-        <div className="flex items-center space-x-2 text-xs text-[#6b6b69] bg-[#f0ede8] px-3 py-1.5 rounded-full border border-[#e2e0db] font-mono">
-          <Cpu className="w-3.5 h-3.5 text-[#0052cc]" />
-          <span>Prêt Pour ChatGPT & Gemini Search</span>
+        <div className="flex items-center space-x-2 text-xs text-[#5f6368] bg-[#f0f6ff] px-3.5 py-1.5 rounded-full border border-[#dadce0] font-medium">
+          <Cpu className="w-3.5 h-3.5 text-[#0b57d0]" />
+          <span>Prêt pour ChatGPT & Google AI</span>
         </div>
       </div>
 
@@ -72,29 +72,29 @@ export const GeoAiReadiness: React.FC<GeoAiReadinessProps> = ({ seoAndGeo }) => 
         {checkItems.map((item, idx) => (
           <div
             key={idx}
-            className="flex items-start space-x-3.5 p-4 rounded-xl bg-[#f9f8f6] border border-[#e2e0db] hover:border-[#b0ada6] transition-all"
+            className="flex items-start space-x-3.5 p-4 rounded-2xl bg-[#f8f9fa] border border-[#dadce0] hover:border-[#0b57d0] transition-all"
           >
             <div
-              className={`w-6 h-6 rounded-md flex items-center justify-center flex-shrink-0 mt-0.5 ${
-                item.status ? 'bg-[#ecfdf5] text-[#059669] border border-[#059669]/30' : 'bg-[#fef2f2] text-[#dc2626] border border-[#dc2626]/30'
+              className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 ${
+                item.status ? 'bg-[#e6f4ea] text-[#137333]' : 'bg-[#fce8e6] text-[#b3261e]'
               }`}
             >
-              {item.status ? <Check className="w-4 h-4" /> : <X className="w-4 h-4" />}
+              {item.status ? <Check className="w-3.5 h-3.5" /> : <X className="w-3.5 h-3.5" />}
             </div>
 
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between">
-                <h4 className="font-heading text-xs sm:text-sm font-bold text-[#111110] truncate">{item.title}</h4>
+                <h4 className="text-sm font-semibold text-[#202124] truncate">{item.title}</h4>
                 <span
-                  className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded ${
-                    item.status ? 'bg-[#ecfdf5] text-[#059669]' : 'bg-[#fef2f2] text-[#dc2626]'
+                  className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                    item.status ? 'bg-[#e6f4ea] text-[#137333]' : 'bg-[#fce8e6] text-[#b3261e]'
                   }`}
                 >
-                  {item.status ? 'CONFORME' : 'À CORRIGER'}
+                  {item.status ? 'CONFORME' : 'À TRAITER'}
                 </span>
               </div>
-              <p className="text-[11px] text-[#0052cc] font-mono mt-0.5 font-medium">{item.detail}</p>
-              <p className="text-[11px] text-[#6b6b69] mt-1 leading-snug">{item.desc}</p>
+              <p className="text-xs text-[#0b57d0] font-medium mt-0.5">{item.detail}</p>
+              <p className="text-xs text-[#5f6368] mt-1 leading-snug">{item.desc}</p>
             </div>
           </div>
         ))}
