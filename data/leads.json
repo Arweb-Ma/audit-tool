@@ -1,0 +1,113 @@
+[
+  {
+    "id": "lead_1786209784212_cgtks",
+    "name": "Sarah Mansouri",
+    "email": "sarah@growthcompany.com",
+    "whatsapp": "+212612345678",
+    "sector": "E-Commerce & Retail",
+    "websiteUrl": "https://stripe.com/",
+    "score": 94,
+    "bottlenecks": [
+      {
+        "id": "slow-lcp",
+        "title": "Mobile Load Delay Costing Sales Conversions",
+        "severity": "warning",
+        "impactText": "Your mobile page takes 2.6s to render the main content. Google studies show pages exceeding 2.5s lose ~15% of potential clients before the main CTA renders.",
+        "estimatedRevenueLoss": "-15% Monthly Leads",
+        "recommendation": "Optimize hero asset rendering, implement Next.js edge caching, and defer blocking scripts."
+      },
+      {
+        "id": "basic-jsonld",
+        "title": "Underutilized AI Search Entity Schemas",
+        "severity": "info",
+        "impactText": "Detected basic schema (Generic). Lacks enriched Product/Service and FAQ schemas for direct AI answer placement.",
+        "estimatedRevenueLoss": "15% Uncaptured Search Impressions",
+        "recommendation": "Expand structured data with rich FAQs, Service offers, and geo-targeted metadata."
+      },
+      {
+        "id": "mobile-viewport",
+        "title": "Sub-Optimal Mobile Viewport & Layout Shift",
+        "severity": "info",
+        "impactText": "Mobile layout shifts cause mis-clicks during user navigation, leading to frustrating drop-offs on checkout and consultation buttons.",
+        "estimatedRevenueLoss": "10-15% Mobile Drop-Off",
+        "recommendation": "Implement strict aspect-ratio containers for imagery and fix un-sized dynamic elements."
+      }
+    ],
+    "submittedAt": "2026-08-08T17:23:04.212Z",
+    "status": "NEW_UNTOUCHED"
+  },
+  {
+    "id": "lead_1787529241949_gbaez",
+    "name": "Sarah Mansouri",
+    "email": "sarah@growthcompany.com",
+    "whatsapp": "+212612345678",
+    "sector": "E-Commerce & Retail",
+    "websiteUrl": "https://stripe.com/",
+    "score": 89,
+    "bottlenecks": [
+      {
+        "id": "slow-lcp",
+        "title": "Mobile Load Delay Costing Sales Conversions",
+        "severity": "warning",
+        "impactText": "Your mobile page takes 3.4s to render the main content. Google studies show pages exceeding 2.5s lose ~21% of potential clients before the main CTA renders.",
+        "estimatedRevenueLoss": "-21% Monthly Leads",
+        "recommendation": "Optimize hero asset rendering, implement Next.js edge caching, and defer blocking scripts."
+      },
+      {
+        "id": "basic-jsonld",
+        "title": "Underutilized AI Search Entity Schemas",
+        "severity": "info",
+        "impactText": "Detected basic schema (Generic). Lacks enriched Product/Service and FAQ schemas for direct AI answer placement.",
+        "estimatedRevenueLoss": "15% Uncaptured Search Impressions",
+        "recommendation": "Expand structured data with rich FAQs, Service offers, and geo-targeted metadata."
+      },
+      {
+        "id": "mobile-viewport",
+        "title": "Sub-Optimal Mobile Viewport & Layout Shift",
+        "severity": "info",
+        "impactText": "Mobile layout shifts cause mis-clicks during user navigation, leading to frustrating drop-offs on checkout and consultation buttons.",
+        "estimatedRevenueLoss": "10-15% Mobile Drop-Off",
+        "recommendation": "Implement strict aspect-ratio containers for imagery and fix un-sized dynamic elements."
+      }
+    ],
+    "submittedAt": "2026-08-23T23:54:01.949Z",
+    "status": "NEW_UNTOUCHED"
+  },
+  {
+    "id": "lead_1787530177120_ddzlr",
+    "name": "Mehdi Ar",
+    "email": "mehdipsy3@gmail.com",
+    "whatsapp": "0674531557",
+    "sector": "E-Commerce & Vente en Ligne",
+    "websiteUrl": "https://void.ma/",
+    "score": 94,
+    "bottlenecks": [
+      {
+        "id": "slow-lcp",
+        "title": "Mobile Load Delay Costing Sales Conversions",
+        "severity": "warning",
+        "impactText": "Your mobile page takes 2.7s to render the main content. Google studies show pages exceeding 2.5s lose ~16% of potential clients before the main CTA renders.",
+        "estimatedRevenueLoss": "-16% Monthly Leads",
+        "recommendation": "Optimize hero asset rendering, implement Next.js edge caching, and defer blocking scripts."
+      },
+      {
+        "id": "basic-jsonld",
+        "title": "Underutilized AI Search Entity Schemas",
+        "severity": "info",
+        "impactText": "Detected basic schema (Organization, WebSite, LocalBusiness, WebPage). Lacks enriched Product/Service and FAQ schemas for direct AI answer placement.",
+        "estimatedRevenueLoss": "15% Uncaptured Search Impressions",
+        "recommendation": "Expand structured data with rich FAQs, Service offers, and geo-targeted metadata."
+      },
+      {
+        "id": "mobile-viewport",
+        "title": "Sub-Optimal Mobile Viewport & Layout Shift",
+        "severity": "info",
+        "impactText": "Mobile layout shifts cause mis-clicks during user navigation, leading to frustrating drop-offs on checkout and consultation buttons.",
+        "estimatedRevenueLoss": "10-15% Mobile Drop-Off",
+        "recommendation": "Implement strict aspect-ratio containers for imagery and fix un-sized dynamic elements."
+      }
+    ],
+    "submittedAt": "2026-08-24T00:09:37.120Z",
+    "status": "NEW_UNTOUCHED"
+  }
+]
