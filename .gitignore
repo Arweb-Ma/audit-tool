@@ -22,10 +22,16 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# Local environment files
+# Local environment files & secrets
 .env*.local
 .env
 
 # TypeScript
 *.tsbuildinfo
 next-env.d.ts
+
+# Lead data & local SQLite databases
+data/
+*.db
+*.sqlite
+*.sqlite3

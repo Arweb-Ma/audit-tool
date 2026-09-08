@@ -2,8 +2,9 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { CheckCircle2, MessageSquare, Download, Sparkles, FileText, Mail } from 'lucide-react';
-import { AuditResult } from '../app/api/analyze/route';
+import { CheckCircle2, MessageSquare, Sparkles, FileText, Mail, Printer } from 'lucide-react';
+import { AuditResult } from '@/types/audit';
+import { config } from '@/lib/config';
 
 interface LeadSuccessStateProps {
   auditResult: AuditResult;
@@ -14,6 +15,8 @@ export const LeadSuccessState: React.FC<LeadSuccessStateProps> = ({
   auditResult,
   whatsappLink,
 }) => {
+  const directWhatsappUrl = whatsappLink || `https://wa.me/${config.arweb.whatsappNumber}?text=${encodeURIComponent(`Bonjour Arweb, j'ai réalisé un audit de ${auditResult.domain} (score ${auditResult.overallScore}/100) et je souhaite échanger sur mon plan d'action.`)}`;
+
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.98 }}
@@ -29,26 +32,34 @@ export const LeadSuccessState: React.FC<LeadSuccessStateProps> = ({
           <div>
             <div className="inline-flex items-center space-x-1.5 text-xs font-bold text-[#137333] uppercase tracking-wider">
               <Sparkles className="w-3.5 h-3.5" />
-              <span>Diagnostic technique débloqué</span>
+              <span>Plan d'action technique débloqué</span>
             </div>
             <h2 className="text-2xl font-medium tracking-tight text-[#202124]">
-              Rapport pour <span className="text-[#0b57d0] font-semibold">{auditResult.domain}</span>
+              Diagnostic pour <span className="text-[#0b57d0] font-semibold">{auditResult.domain}</span>
             </h2>
           </div>
         </div>
 
         <div className="flex items-center gap-3 w-full sm:w-auto">
+          <button
+            onClick={() => window.print()}
+            className="w-full sm:w-auto button button-outline button-compact text-xs sm:text-sm flex items-center justify-center space-x-2"
+          >
+            <Printer className="w-4 h-4 text-[#5f6368]" />
+            <span>Imprimer / PDF</span>
+          </button>
           <a
-            href={whatsappLink}
+            href={directWhatsappUrl}
             target="_blank"
             rel="noopener noreferrer"
             className="w-full sm:w-auto button button-compact bg-[#137333] border-[#137333] hover:bg-[#0d5926] text-white font-bold text-xs sm:text-sm flex items-center justify-center space-x-2"
           >
             <MessageSquare className="w-4 h-4" />
-            <span>Échanger sur WhatsApp</span>
+            <span>Échanger sur WhatsApp (+{config.arweb.whatsappNumber})</span>
           </a>
         </div>
       </div>
+
 
       {/* Action Plan Checklist */}
       <div className="space-y-4">
@@ -106,7 +117,7 @@ export const LeadSuccessState: React.FC<LeadSuccessStateProps> = ({
             onClick={() => window.print()}
             className="button button-outline button-compact text-sm w-full sm:w-auto justify-center"
           >
-            <Download className="w-4 h-4 text-[#0b57d0] mr-2" />
+            <Printer className="w-4 h-4 text-[#0b57d0] mr-2" />
             <span>Imprimer le rapport</span>
           </button>
         </div>

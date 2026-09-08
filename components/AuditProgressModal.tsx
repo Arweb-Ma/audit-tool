@@ -30,9 +30,9 @@ const AUDIT_STEPS = [
   },
   {
     id: 4,
-    title: 'Calcul de l\'Impact sur la Conversion',
-    description: 'Traduction des lenteurs et manques techniques en opportunités de croissance actionnables...',
-    icon: TrendingDown,
+    title: 'Génération du Diagnostic & Score Composite',
+    description: 'Calcul pondéré des 7 dimensions techniques et priorisation des recommandations factuelles...',
+    icon: Sparkles,
   },
 ];
 

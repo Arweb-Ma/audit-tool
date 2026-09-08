@@ -5,14 +5,16 @@ import { Header } from '@/components/Header';
 import { HeroSection } from '@/components/HeroSection';
 import { AuditProgressModal } from '@/components/AuditProgressModal';
 import { ScoreGauge } from '@/components/ScoreGauge';
+import { CategoryScoreBreakdown } from '@/components/CategoryScoreBreakdown';
 import { BottleneckAlerts } from '@/components/BottleneckAlerts';
 import { MetricsGrid } from '@/components/MetricsGrid';
+import { TechnicalFindings } from '@/components/TechnicalFindings';
 import { GeoAiReadiness } from '@/components/GeoAiReadiness';
 import { LeadCaptureModal } from '@/components/LeadCaptureModal';
 import { LeadSuccessState } from '@/components/LeadSuccessState';
 import { AgencyCTA } from '@/components/AgencyCTA';
-import { AuditResult } from '@/app/api/analyze/route';
-import { AlertCircle, Lock, Sparkles, MessageSquare, Mail } from 'lucide-react';
+import { AuditResult } from '@/types/audit';
+import { AlertCircle, Lock, Sparkles, Mail } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 export default function Home() {
@@ -41,7 +43,7 @@ export default function Home() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ url }),
         }),
-        new Promise((resolve) => setTimeout(resolve, 4500)),
+        new Promise((resolve) => setTimeout(resolve, 3500)),
       ]);
 
       const data = await res.json();
@@ -96,22 +98,33 @@ export default function Home() {
               domain={auditResult.domain}
             />
 
+            {/* 7-Category Score Breakdown */}
+            <CategoryScoreBreakdown categories={auditResult.categoryScores} />
+
             {/* Unlocked State / Lead Success View */}
             {isUnlocked ? (
               <LeadSuccessState auditResult={auditResult} whatsappLink={whatsappLink} />
             ) : (
               <>
-                {/* 3-4 High-Impact Business Bottlenecks */}
+                {/* Real Technical Issues & Alerts */}
                 <BottleneckAlerts
-                  bottlenecks={auditResult.businessBottlenecks}
+                  issues={auditResult.issues}
                   onUnlockDeepAudit={() => setIsLeadModalOpen(true)}
                 />
 
                 {/* Core Web Vitals Grid */}
                 <MetricsGrid metrics={auditResult.metrics} />
 
+                {/* Factual Technical Inspection Panel */}
+                <TechnicalFindings audit={auditResult} />
+
                 {/* Multilingual SEO & GEO AI Readiness */}
-                <GeoAiReadiness seoAndGeo={auditResult.seoAndGeo} />
+                <GeoAiReadiness
+                  seo={auditResult.seo}
+                  schema={auditResult.schema}
+                  social={auditResult.social}
+                  aiReadiness={auditResult.aiReadiness}
+                />
 
                 {/* Gated Lead Capture Banner */}
                 <motion.div
@@ -129,7 +142,7 @@ export default function Home() {
                   </h3>
 
                   <p className="text-base sm:text-lg text-[#5f6368] max-w-2xl mx-auto leading-relaxed">
-                    Débloquez votre synthèse technique complète et échangez sans engagement avec un expert de l'équipe Arweb.
+                    Débloquez votre synthèse technique complète et échangez directement avec un ingénieur web de l'équipe Arweb.
                   </p>
 
                   <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -138,7 +151,7 @@ export default function Home() {
                       className="button min-h-[52px] px-8 text-base shadow-sm w-full sm:w-auto justify-center"
                     >
                       <Sparkles className="w-5 h-5 text-white mr-2" />
-                      <span>Débloquer mon plan d'action (Gratuit)</span>
+                      <span>Recevoir mon plan d'action (Gratuit)</span>
                     </button>
 
                     <a
@@ -172,3 +185,4 @@ export default function Home() {
     </div>
   );
 }
+

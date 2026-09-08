@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Lock, X, ArrowRight, ShieldCheck, User, Mail, Phone, Building2 } from 'lucide-react';
-import { AuditResult } from '../app/api/analyze/route';
+import { Lock, X, ArrowRight, ShieldCheck, User, Mail, Phone, Building2, CheckSquare, Square } from 'lucide-react';
+import { AuditResult } from '@/types/audit';
 
 interface LeadCaptureModalProps {
   isOpen: boolean;
@@ -33,8 +33,20 @@ export const LeadCaptureModal: React.FC<LeadCaptureModalProps> = ({
   const [email, setEmail] = useState('');
   const [whatsapp, setWhatsapp] = useState('');
   const [sector, setSector] = useState(SECTORS[0]);
+  const [consentGiven, setConsentGiven] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+
+  // Close modal on Escape key
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isOpen) {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
 
   if (!isOpen || !auditResult) return null;
 
@@ -42,6 +54,11 @@ export const LeadCaptureModal: React.FC<LeadCaptureModalProps> = ({
     e.preventDefault();
     if (!name.trim() || !email.trim() || !whatsapp.trim()) {
       setErrorMsg('Veuillez compléter votre nom, courriel et numéro WhatsApp.');
+      return;
+    }
+
+    if (!consentGiven) {
+      setErrorMsg('Veuillez accepter les conditions de confidentialité pour recevoir votre plan d\'action.');
       return;
     }
 
@@ -58,10 +75,25 @@ export const LeadCaptureModal: React.FC<LeadCaptureModalProps> = ({
           whatsapp: whatsapp.trim(),
           sector,
           websiteUrl: auditResult.url,
-          score: auditResult.overallScore,
-          bottlenecks: auditResult.businessBottlenecks,
+          auditScore: auditResult.overallScore,
+          categoryScores: {
+            seo: auditResult.categoryScores.seo.score,
+            performance: auditResult.categoryScores.performance.score,
+            indexability: auditResult.categoryScores.indexability.score,
+            schema: auditResult.categoryScores.schema.score,
+            mobile: auditResult.categoryScores.mobile.score,
+            security: auditResult.categoryScores.security.score,
+            social: auditResult.categoryScores.social.score,
+          },
+          topIssues: (auditResult.issues || []).slice(0, 5).map((iss) => ({
+            title: iss.title,
+            severity: iss.severity,
+            evidence: iss.evidence,
+          })),
+          consentGiven,
         }),
       });
+
 
       const data = await res.json();
       if (!res.ok) {
@@ -177,6 +209,28 @@ export const LeadCaptureModal: React.FC<LeadCaptureModalProps> = ({
               </div>
             </div>
 
+            {/* Consent Checkbox */}
+            <div className="flex items-start space-x-2.5 pt-1">
+              <input
+                type="checkbox"
+                id="consent-check"
+                checked={consentGiven}
+                onChange={(e) => setConsentGiven(e.target.checked)}
+                className="mt-1 h-4 w-4 rounded border-[#dadce0] text-[#0b57d0] focus:ring-[#0b57d0]"
+              />
+              <label htmlFor="consent-check" className="text-xs text-[#5f6368] leading-snug cursor-pointer select-none">
+                J'accepte d'être recontacté par l'équipe technique Arweb pour la remise de ce diagnostic, conformément à la{' '}
+                <a
+                  href="https://arweb.ma/politique-confidentialite/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[#0b57d0] underline font-medium"
+                >
+                  politique de confidentialité
+                </a>.
+              </label>
+            </div>
+
             {errorMsg && <p className="text-xs text-[#b3261e] font-medium pt-1">{errorMsg}</p>}
 
             {/* Submit Button */}
@@ -192,7 +246,7 @@ export const LeadCaptureModal: React.FC<LeadCaptureModalProps> = ({
                 </>
               ) : (
                 <>
-                  <span>Débloquer mon audit gratuit</span>
+                  <span>Recevoir mon plan d'action technique</span>
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </>
               )}
