@@ -15,46 +15,63 @@ export async function saveLead(payload: LeadSubmissionPayload): Promise<{ leadId
 
   // 1. Check if Supabase credentials exist (Free PostgreSQL cloud tier)
   if (config.database.supabaseUrl && config.database.supabaseServiceRoleKey) {
-    try {
-      const endpoint = `${config.database.supabaseUrl.replace(/\/$/, '')}/rest/v1/arweb_leads`;
-      const res = await fetch(endpoint, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          apikey: config.database.supabaseServiceRoleKey,
-          Authorization: `Bearer ${config.database.supabaseServiceRoleKey}`,
-          Prefer: 'return=minimal',
-        },
-        body: JSON.stringify({
-          id: leadId,
-          name: payload.name,
-          email: payload.email,
-          whatsapp: payload.whatsapp,
-          sector: payload.sector,
-          website_url: payload.websiteUrl,
-          audit_score: payload.auditScore,
-          category_scores: payload.categoryScores,
-          top_issues: payload.topIssues,
-          consent_given: payload.consentGiven,
-          source: 'audit.arweb.ma',
-          status: 'new',
-          created_at: submittedAt,
-        }),
-      });
+    const baseUrl = config.database.supabaseUrl.replace(/\/$/, '');
+    const headers = {
+      'Content-Type': 'application/json',
+      apikey: config.database.supabaseServiceRoleKey,
+      Authorization: `Bearer ${config.database.supabaseServiceRoleKey}`,
+      Prefer: 'return=representation',
+    };
 
-      if (res.ok) {
-        logger.info('Lead saved to Supabase successfully', {
-          leadId,
-          website: payload.websiteUrl,
-          score: payload.auditScore,
+    const leadData = {
+      name: payload.name,
+      email: payload.email,
+      whatsapp: payload.whatsapp,
+      sector: payload.sector,
+      website_url: payload.websiteUrl,
+      audit_score: payload.auditScore,
+      category_scores: payload.categoryScores,
+      top_issues: payload.topIssues,
+      consent_given: payload.consentGiven,
+      status: 'new',
+    };
+
+    // Try 'arweb_leads' first, fallback to 'leads' if not found
+    for (const tableName of ['arweb_leads', 'leads']) {
+      try {
+        const endpoint = `${baseUrl}/rest/v1/${tableName}`;
+        const res = await fetch(endpoint, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify(leadData),
         });
-        return { leadId, storageMode: 'supabase' };
-      }
 
-      const errBody = await res.text();
-      logger.error('Failed to insert lead into Supabase', { status: res.status, error: errBody });
-    } catch (err) {
-      logger.error('Error connecting to Supabase database', { error: String(err) });
+        if (res.ok) {
+          const inserted = await res.json().catch(() => null);
+          const finalId = Array.isArray(inserted) && inserted[0]?.id ? inserted[0].id : leadId;
+          logger.info('Lead saved to Supabase successfully', {
+            table: tableName,
+            leadId: finalId,
+            website: payload.websiteUrl,
+            score: payload.auditScore,
+          });
+          return { leadId: String(finalId), storageMode: 'supabase' };
+        }
+
+        const errBody = await res.text();
+        // If 404 table not found, try the next table name
+        if (res.status === 404) {
+          logger.warn(`Table ${tableName} not found in Supabase, trying next...`);
+          continue;
+        }
+
+        logger.error(`Failed to insert lead into Supabase (${tableName})`, {
+          status: res.status,
+          error: errBody,
+        });
+      } catch (err) {
+        logger.error(`Error connecting to Supabase table ${tableName}`, { error: String(err) });
+      }
     }
   }
 
