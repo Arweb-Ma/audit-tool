@@ -89,7 +89,7 @@ export async function fetchRealPageSpeedMetrics(
 
   try {
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 9000);
+    const timer = setTimeout(() => controller.abort(), 25000);
 
     const res = await fetch(endpoint, {
       signal: controller.signal,
