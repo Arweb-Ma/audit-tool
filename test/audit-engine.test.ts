@@ -8,6 +8,7 @@ import { computeAuditScores } from '../lib/audit/scoring';
 import { generatePrioritizedIssues } from '../lib/audit/issues';
 import { POST as leadHandler } from '../app/api/lead/route';
 import { createAuditRecord, getAuditRecord } from '../lib/audit-store';
+import { config } from '../lib/config';
 
 async function runTests() {
   console.log('🧪 Starting ARWEB Audit Engine Test Suite...\n');
@@ -460,6 +461,89 @@ const brokenIssues = generatePrioritizedIssues(
   );
 
   console.log('  ✓ Lead submission requires server-verified auditId and ignores client score spoofing\n');
+
+  // --- Test 9: Task 4 - Env Var Reconciliation & Dynamic Config Resolution ---
+  console.log('Test 9: Env Var Name Reconciliation (Task 4)');
+
+  process.env.AUDIT_TIMEOUT_MS = '15000';
+  process.env.RATE_LIMIT_AUDITS_PER_HOUR = '25';
+  process.env.RATE_LIMIT_LEADS_PER_HOUR = '12';
+  process.env.NEXT_PUBLIC_CONTACT_EMAIL = 'support@arweb.ma';
+  process.env.NEXT_PUBLIC_APP_URL = 'https://custom.arweb.ma';
+
+  assert.strictEqual(
+    config.audit.fetchTimeoutMs,
+    15000,
+    'config.audit.fetchTimeoutMs must read documented AUDIT_TIMEOUT_MS'
+  );
+  assert.strictEqual(
+    config.audit.rateLimitHourlyAudits,
+    25,
+    'config.audit.rateLimitHourlyAudits must read documented RATE_LIMIT_AUDITS_PER_HOUR'
+  );
+  assert.strictEqual(
+    config.audit.rateLimitHourlyLeads,
+    12,
+    'config.audit.rateLimitHourlyLeads must read documented RATE_LIMIT_LEADS_PER_HOUR'
+  );
+  assert.strictEqual(
+    config.arweb.contactEmail,
+    'support@arweb.ma',
+    'config.arweb.contactEmail must read documented NEXT_PUBLIC_CONTACT_EMAIL'
+  );
+  assert.strictEqual(
+    config.arweb.siteUrl,
+    'https://custom.arweb.ma',
+    'config.arweb.siteUrl must read documented NEXT_PUBLIC_APP_URL'
+  );
+
+  // 9.2: Test backward compatibility with legacy environment variable names
+  delete process.env.AUDIT_TIMEOUT_MS;
+  delete process.env.RATE_LIMIT_AUDITS_PER_HOUR;
+  delete process.env.RATE_LIMIT_LEADS_PER_HOUR;
+  delete process.env.NEXT_PUBLIC_CONTACT_EMAIL;
+  delete process.env.NEXT_PUBLIC_APP_URL;
+
+  process.env.FETCH_TIMEOUT_MS = '8000';
+  process.env.RATE_LIMIT_HOURLY_AUDITS = '18';
+  process.env.RATE_LIMIT_HOURLY_LEADS = '9';
+  process.env.CONTACT_EMAIL = 'legacy@arweb.ma';
+  process.env.NEXT_PUBLIC_ARWEB_URL = 'https://legacy.arweb.ma';
+
+  assert.strictEqual(
+    config.audit.fetchTimeoutMs,
+    8000,
+    'config.audit.fetchTimeoutMs must fall back to legacy FETCH_TIMEOUT_MS'
+  );
+  assert.strictEqual(
+    config.audit.rateLimitHourlyAudits,
+    18,
+    'config.audit.rateLimitHourlyAudits must fall back to legacy RATE_LIMIT_HOURLY_AUDITS'
+  );
+  assert.strictEqual(
+    config.audit.rateLimitHourlyLeads,
+    9,
+    'config.audit.rateLimitHourlyLeads must fall back to legacy RATE_LIMIT_HOURLY_LEADS'
+  );
+  assert.strictEqual(
+    config.arweb.contactEmail,
+    'legacy@arweb.ma',
+    'config.arweb.contactEmail must fall back to legacy CONTACT_EMAIL'
+  );
+  assert.strictEqual(
+    config.arweb.siteUrl,
+    'https://legacy.arweb.ma',
+    'config.arweb.siteUrl must fall back to legacy NEXT_PUBLIC_ARWEB_URL'
+  );
+
+  // Clean up environment after test
+  delete process.env.FETCH_TIMEOUT_MS;
+  delete process.env.RATE_LIMIT_HOURLY_AUDITS;
+  delete process.env.RATE_LIMIT_HOURLY_LEADS;
+  delete process.env.CONTACT_EMAIL;
+  delete process.env.NEXT_PUBLIC_ARWEB_URL;
+
+  console.log('  ✓ Config correctly resolves documented names with legacy fallbacks\n');
 
   console.log('\n🎉 ALL AUDIT ENGINE UNIT TESTS PASSED SUCCESSFULLY!');
 }

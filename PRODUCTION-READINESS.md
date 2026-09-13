@@ -18,6 +18,9 @@ NEXT_PUBLIC_CONTACT_EMAIL="contact@arweb.ma"
 # Domaine de production
 NEXT_PUBLIC_APP_URL="https://audit.arweb.ma"
 
+# URL de politique de confidentialité
+NEXT_PUBLIC_PRIVACY_URL="https://arweb.ma/politique-confidentialite/"
+
 # Clé API Google PageSpeed Insights (optionnelle mais recommandée pour lever les quotas d'anonymat)
 PAGESPEED_API_KEY=""
 
@@ -30,6 +33,7 @@ SUPABASE_SERVICE_ROLE_KEY=""
 RATE_LIMIT_AUDITS_PER_HOUR=10
 RATE_LIMIT_LEADS_PER_HOUR=5
 AUDIT_TIMEOUT_MS=10000
+AUDIT_CACHE_TTL_SECONDS=900
 ```
 
 ---
