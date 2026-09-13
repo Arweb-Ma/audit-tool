@@ -1,5 +1,6 @@
 import dns from 'node:dns/promises';
 import net from 'node:net';
+import { Agent } from 'undici';
 
 export class SsrfBlockError extends Error {
   constructor(message: string, public readonly code: string = 'SSRF_BLOCKED') {
@@ -186,4 +187,24 @@ export async function assertSafeDestination(url: URL): Promise<string> {
   }
 
   return lookupResults[0].address;
+}
+
+/**
+ * Creates an Undici Agent with a custom connect.lookup override to pin the outbound
+ * socket connection to a pre-validated safe IP address. This eliminates the DNS rebinding
+ * Time-of-Check to Time-of-Use (TOCTOU) window while preserving SNI and TLS certificate validation.
+ */
+export function createPinnedIpAgent(pinnedIp: string): Agent {
+  const family = net.isIP(pinnedIp);
+  return new Agent({
+    connect: {
+      lookup: (_hostname: string, options: any, callback: (err: any, address?: any, family?: number) => void) => {
+        if (options && options.all) {
+          callback(null, [{ address: pinnedIp, family }]);
+        } else {
+          callback(null, pinnedIp, family);
+        }
+      },
+    },
+  });
 }

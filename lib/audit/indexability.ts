@@ -1,7 +1,7 @@
 import * as cheerio from 'cheerio';
 import { IndexabilityMetrics } from '../../types/audit';
 import { config } from '../config';
-import { assertSafeDestination } from './url';
+import { safeFetch } from './fetch';
 import { logger } from '../logger';
 
 export async function analyzeIndexability(
@@ -46,7 +46,7 @@ export async function analyzeIndexability(
     }
   }
 
-  // 4. Quick probe for robots.txt
+  // 4. Quick probe for robots.txt (safeFetch enforces SSRF checks, IP pinning, byte cap & redirect inspection)
   let robotsTxtStatus: IndexabilityMetrics['robotsTxtStatus'] = 'unreachable';
   let sitemapStatus: IndexabilityMetrics['sitemapStatus'] = 'missing';
   let sitemapUrl: string | undefined = undefined;
@@ -55,19 +55,14 @@ export async function analyzeIndexability(
     const originUrl = new URL(finalUrl);
     const robotsUrl = new URL('/robots.txt', originUrl.origin);
 
-    await assertSafeDestination(robotsUrl);
-
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 4000);
-
-    const res = await fetch(robotsUrl.href, {
-      signal: controller.signal,
+    const res = await safeFetch(robotsUrl, {
+      method: 'GET',
+      timeoutMs: 4000,
+      maxBytes: 128 * 1024,
       headers: {
         'User-Agent': config.audit.userAgent,
       },
     });
-
-    clearTimeout(timer);
 
     if (res.ok) {
       robotsTxtStatus = 'present';
@@ -85,23 +80,17 @@ export async function analyzeIndexability(
     logger.warn('Error checking robots.txt', { error: String(err), finalUrl });
   }
 
-  // 5. If sitemap was not declared in robots.txt, test /sitemap.xml directly
+  // 5. If sitemap was not declared in robots.txt, test /sitemap.xml directly via safeFetch
   if (sitemapStatus === 'missing') {
     try {
       const originUrl = new URL(finalUrl);
       const testSitemapUrl = new URL('/sitemap.xml', originUrl.origin);
-      await assertSafeDestination(testSitemapUrl);
 
-      const controller = new AbortController();
-      const timer = setTimeout(() => controller.abort(), 4000);
-
-      const res = await fetch(testSitemapUrl.href, {
+      const res = await safeFetch(testSitemapUrl, {
         method: 'HEAD',
-        signal: controller.signal,
+        timeoutMs: 4000,
         headers: { 'User-Agent': config.audit.userAgent },
       });
-
-      clearTimeout(timer);
 
       if (res.ok) {
         sitemapStatus = 'present';
