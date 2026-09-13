@@ -9,6 +9,8 @@ import { generatePrioritizedIssues } from '../lib/audit/issues';
 import { POST as leadHandler } from '../app/api/lead/route';
 import { createAuditRecord, getAuditRecord } from '../lib/audit-store';
 import { config } from '../lib/config';
+import { checkRateLimit } from '../lib/rate-limit';
+import { getCachedAudit, setCachedAudit } from '../lib/cache';
 
 async function runTests() {
   console.log('🧪 Starting ARWEB Audit Engine Test Suite...\n');
@@ -316,7 +318,7 @@ const brokenIssues = generatePrioritizedIssues(
     }
     console.log('  ✓ SSRF probe redirect protections verified\n');
   } finally {
-    mockServer.close();
+    await new Promise<void>((resolve) => mockServer.close(() => resolve()));
   }
 
   // --- Test 7: Task 2 - DNS Rebinding TOCTOU Prevention via IP Pinning ---
@@ -335,6 +337,8 @@ const brokenIssues = generatePrioritizedIssues(
   connectLookup('rebound-attacker-domain.internal', { all: true }, (_err: any, addresses: any) => {
     resolvedIp = Array.isArray(addresses) ? addresses[0]?.address : addresses;
   });
+  assert.strictEqual(resolvedIp, testPinnedIp, `Agent lookup must return pinned IP ${testPinnedIp} instead of resolving attacker domain`);
+  await pinnedAgent.destroy();
   console.log('  ✓ DNS rebinding IP pinning verified\n');
 
   // --- Test 8: Task 3 - Tie Lead Submissions to Server-Verified Audit Record ---
@@ -545,14 +549,125 @@ const brokenIssues = generatePrioritizedIssues(
 
   console.log('  ✓ Config correctly resolves documented names with legacy fallbacks\n');
 
+  // --- Test 10: Task 5 - Serverless-Safe Rate Limiting & Caching ---
+  console.log('Test 10: Serverless-Safe Rate Limiting & Caching (Task 5)');
+
+  // 10.1: In-memory fallback rate limiting
+  const ipMem = '198.51.100.1';
+  const r1 = await checkRateLimit(ipMem, 'audit', 2);
+  assert.strictEqual(r1.success, true);
+  assert.strictEqual(r1.remaining, 1);
+
+  const r2 = await checkRateLimit(ipMem, 'audit', 2);
+  assert.strictEqual(r2.success, true);
+  assert.strictEqual(r2.remaining, 0);
+
+  const r3 = await checkRateLimit(ipMem, 'audit', 2);
+  assert.strictEqual(r3.success, false, '3rd request on limit of 2 must fail rate limit');
+  assert.strictEqual(r3.remaining, 0);
+  console.log('  ✓ In-memory rate limiting fallback works');
+
+  // 10.2: Supabase-backed storage path
+  let supabaseRequests: Array<{ url: string; method: string; body?: any }> = [];
+  const mockDb = {
+    rateLimits: new Map<string, any>(),
+    cache: new Map<string, any>(),
+  };
+
+  const supabaseMockServer = http.createServer((req, res) => {
+    let reqBody = '';
+    req.on('data', (c) => (reqBody += c));
+    req.on('end', () => {
+      const parsedBody = reqBody ? JSON.parse(reqBody) : null;
+      supabaseRequests.push({ url: req.url || '', method: req.method || 'GET', body: parsedBody });
+
+      // Verify required Supabase auth headers
+      assert.strictEqual(req.headers['apikey'], 'mock-test-key');
+      assert.strictEqual(req.headers['authorization'], 'Bearer mock-test-key');
+
+      if (req.url?.startsWith('/rest/v1/arweb_rate_limits')) {
+        if (req.method === 'GET') {
+          const match = req.url.match(/key=eq\.([^&]+)/);
+          const key = match ? decodeURIComponent(match[1]) : '';
+          const record = mockDb.rateLimits.get(key);
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify(record ? [record] : []));
+        } else if (req.method === 'POST') {
+          if (parsedBody && parsedBody.key) {
+            mockDb.rateLimits.set(parsedBody.key, parsedBody);
+          }
+          res.writeHead(201, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify([parsedBody]));
+        }
+      } else if (req.url?.startsWith('/rest/v1/arweb_cache')) {
+        if (req.method === 'GET') {
+          const match = req.url.match(/url=eq\.([^&]+)/);
+          const key = match ? decodeURIComponent(match[1]) : '';
+          const record = mockDb.cache.get(key);
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify(record ? [record] : []));
+        } else if (req.method === 'POST') {
+          if (parsedBody && parsedBody.url) {
+            mockDb.cache.set(parsedBody.url, parsedBody);
+          }
+          res.writeHead(201, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify([parsedBody]));
+        }
+      } else {
+        res.writeHead(404);
+        res.end();
+      }
+    });
+  });
+
+  await new Promise<void>((resolve) => supabaseMockServer.listen(0, '127.0.0.1', () => resolve()));
+  const sbPort = (supabaseMockServer.address() as any).port;
+
+  try {
+    process.env.SUPABASE_URL = `http://127.0.0.1:${sbPort}`;
+    process.env.SUPABASE_SERVICE_ROLE_KEY = 'mock-test-key';
+
+    // Test Supabase Rate Limiting
+    const sbIp = '203.0.113.55';
+    const sbR1 = await checkRateLimit(sbIp, 'audit', 2);
+    assert.strictEqual(sbR1.success, true);
+
+    const sbR2 = await checkRateLimit(sbIp, 'audit', 2);
+    assert.strictEqual(sbR2.success, true);
+
+    const sbR3 = await checkRateLimit(sbIp, 'audit', 2);
+    assert.strictEqual(sbR3.success, false, 'Exceeding limit in Supabase rate limiter must return false');
+
+    // Test Supabase Cache
+    const testAuditData: any = {
+      url: 'https://cached-site.com',
+      domain: 'cached-site.com',
+      overallScore: 88,
+    };
+    await setCachedAudit('https://cached-site.com', testAuditData);
+    const retrievedFromSb = await getCachedAudit('https://cached-site.com');
+    assert.strictEqual(retrievedFromSb?.overallScore, 88, 'Should retrieve cached audit from Supabase');
+
+    // Confirm that requests were routed to Supabase REST endpoints
+    assert.ok(
+      supabaseRequests.some((r) => r.url.includes('arweb_rate_limits')),
+      'Must make Supabase REST call for rate limiting'
+    );
+    assert.ok(
+      supabaseRequests.some((r) => r.url.includes('arweb_cache')),
+      'Must make Supabase REST call for caching'
+    );
+    console.log('  ✓ Supabase-backed rate limit and cache path verified\n');
+  } finally {
+    await new Promise<void>((resolve) => supabaseMockServer.close(() => resolve()));
+    delete process.env.SUPABASE_URL;
+    delete process.env.SUPABASE_SERVICE_ROLE_KEY;
+  }
+
   console.log('\n🎉 ALL AUDIT ENGINE UNIT TESTS PASSED SUCCESSFULLY!');
 }
 
-runTests()
-  .then(() => {
-    process.exit(0);
-  })
-  .catch((err) => {
-    console.error('❌ Test failed:', err);
-    process.exit(1);
-  });
+runTests().catch((err) => {
+  console.error('❌ Test failed:', err);
+  process.exit(1);
+});

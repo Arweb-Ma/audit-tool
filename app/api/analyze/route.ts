@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
   const clientIp = getClientIp(req.headers);
 
   // 1. Rate limiting check
-  const rateLimit = checkRateLimit(clientIp, 'audit', config.audit.rateLimitHourlyAudits);
+  const rateLimit = await checkRateLimit(clientIp, 'audit', config.audit.rateLimitHourlyAudits);
   if (!rateLimit.success) {
     logger.warn('Audit rate limit exceeded', { ip: clientIp });
     return NextResponse.json(
@@ -52,7 +52,7 @@ export async function POST(req: NextRequest) {
     const domain = targetUrl.hostname.replace(/^www\./, '');
 
     // 3. Check short-term cache (15 min)
-    const cached = getCachedAudit(targetUrl.href);
+    const cached = await getCachedAudit(targetUrl.href);
     if (cached) {
       logger.info('Audit served from cache', { domain, url: targetUrl.href });
       const auditId = createAuditRecord(cached);
@@ -137,7 +137,7 @@ export async function POST(req: NextRequest) {
 
     // Save to cache (only cache if PageSpeed was successfully retrieved)
     if (perfMetrics.available) {
-      setCachedAudit(targetUrl.href, auditResult);
+      await setCachedAudit(targetUrl.href, auditResult);
     }
 
     logger.info('Audit completed successfully', {

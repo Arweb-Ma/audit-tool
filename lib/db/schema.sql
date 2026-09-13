@@ -23,3 +23,20 @@ CREATE TABLE IF NOT EXISTS arweb_leads (
 CREATE INDEX IF NOT EXISTS idx_arweb_leads_created_at ON arweb_leads(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_arweb_leads_email ON arweb_leads(email);
 CREATE INDEX IF NOT EXISTS idx_arweb_leads_status ON arweb_leads(status);
+
+-- Table de limitation de requêtes serverless (Netlify / Vercel)
+CREATE TABLE IF NOT EXISTS arweb_rate_limits (
+  key TEXT PRIMARY KEY,
+  timestamps JSONB NOT NULL DEFAULT '[]'::jsonb,
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Table de cache persistant des audits
+CREATE TABLE IF NOT EXISTS arweb_cache (
+  url TEXT PRIMARY KEY,
+  data JSONB NOT NULL,
+  expires_at BIGINT NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_arweb_cache_expires_at ON arweb_cache(expires_at);

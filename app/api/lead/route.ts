@@ -10,7 +10,7 @@ export async function POST(req: NextRequest) {
   const clientIp = getClientIp(req.headers);
 
   // 1. Rate limiting check
-  const rateLimit = checkRateLimit(clientIp, 'lead', config.audit.rateLimitHourlyLeads);
+  const rateLimit = await checkRateLimit(clientIp, 'lead', config.audit.rateLimitHourlyLeads);
   if (!rateLimit.success) {
     logger.warn('Lead submission rate limit exceeded', { ip: clientIp });
     return NextResponse.json(
