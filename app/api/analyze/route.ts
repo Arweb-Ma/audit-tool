@@ -123,8 +123,10 @@ export async function POST(req: NextRequest) {
       totalChecksCount: scoringResult.totalChecksCount,
     };
 
-    // Save to cache
-    setCachedAudit(targetUrl.href, auditResult);
+    // Save to cache (only cache if PageSpeed was successfully retrieved)
+    if (perfMetrics.available) {
+      setCachedAudit(targetUrl.href, auditResult);
+    }
 
     logger.info('Audit completed successfully', {
       domain,
