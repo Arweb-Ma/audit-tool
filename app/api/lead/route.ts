@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { saveLead } from '@/lib/db/leads';
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
+import { getAuditRecord } from '@/lib/audit-store';
 import { config } from '@/lib/config';
 import { logger } from '@/lib/logger';
 import { LeadSubmissionPayload } from '@/types/audit';
@@ -24,8 +25,23 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const { name, email, whatsapp, sector, websiteUrl, auditScore, categoryScores, topIssues, consentGiven } =
-      body;
+    const { auditId, name, email, whatsapp, sector, consentGiven } = body;
+
+    // 2. Server-side audit record verification (Task 3)
+    if (!auditId || typeof auditId !== 'string' || auditId.trim().length === 0) {
+      return NextResponse.json(
+        { error: 'Identifiant d\'audit manquant ou invalide. Veuillez relancer une analyse pour générer votre plan d\'action.' },
+        { status: 400 }
+      );
+    }
+
+    const verifiedAudit = getAuditRecord(auditId.trim());
+    if (!verifiedAudit) {
+      return NextResponse.json(
+        { error: 'Session d\'audit expirée ou introuvable. Veuillez relancer une analyse pour débloquer votre plan d\'action.' },
+        { status: 400 }
+      );
+    }
 
     // Validation
     if (!name || typeof name !== 'string' || name.trim().length < 2) {
@@ -47,15 +63,29 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Populate metrics strictly from the verified server-side audit record
     const payload: LeadSubmissionPayload = {
+      auditId: verifiedAudit.auditId,
       name: name.trim(),
       email: email.trim().toLowerCase(),
       whatsapp: whatsapp.trim(),
       sector: sector || 'Général',
-      websiteUrl: (websiteUrl || '').trim(),
-      auditScore: typeof auditScore === 'number' ? auditScore : 0,
-      categoryScores: categoryScores || {},
-      topIssues: Array.isArray(topIssues) ? topIssues.slice(0, 5) : [],
+      websiteUrl: verifiedAudit.url,
+      auditScore: verifiedAudit.overallScore,
+      categoryScores: {
+        seo: verifiedAudit.categoryScores.seo.score,
+        performance: verifiedAudit.categoryScores.performance.score,
+        indexability: verifiedAudit.categoryScores.indexability.score,
+        schema: verifiedAudit.categoryScores.schema.score,
+        mobile: verifiedAudit.categoryScores.mobile.score,
+        security: verifiedAudit.categoryScores.security.score,
+        social: verifiedAudit.categoryScores.social.score,
+      },
+      topIssues: (verifiedAudit.issues || []).slice(0, 5).map((iss) => ({
+        title: iss.title,
+        severity: iss.severity,
+        evidence: iss.evidence,
+      })),
       consentGiven: Boolean(consentGiven),
     };
 

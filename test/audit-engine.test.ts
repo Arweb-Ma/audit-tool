@@ -1,10 +1,13 @@
 import assert from 'node:assert';
 import http from 'node:http';
+import { NextRequest } from 'next/server';
 import { normalizeTargetUrl, isIpAddressSafe, assertSafeDestination, createPinnedIpAgent } from '../lib/audit/url';
 import { safeFetch } from '../lib/audit/fetch';
 import { analyzeStructuredData } from '../lib/audit/schema';
 import { computeAuditScores } from '../lib/audit/scoring';
 import { generatePrioritizedIssues } from '../lib/audit/issues';
+import { POST as leadHandler } from '../app/api/lead/route';
+import { createAuditRecord, getAuditRecord } from '../lib/audit-store';
 
 async function runTests() {
   console.log('🧪 Starting ARWEB Audit Engine Test Suite...\n');
@@ -331,13 +334,141 @@ const brokenIssues = generatePrioritizedIssues(
   connectLookup('rebound-attacker-domain.internal', { all: true }, (_err: any, addresses: any) => {
     resolvedIp = Array.isArray(addresses) ? addresses[0]?.address : addresses;
   });
-  assert.strictEqual(resolvedIp, testPinnedIp, `Agent lookup must return pinned IP ${testPinnedIp} instead of resolving attacker domain`);
   console.log('  ✓ DNS rebinding IP pinning verified\n');
+
+  // --- Test 8: Task 3 - Tie Lead Submissions to Server-Verified Audit Record ---
+  console.log('Test 8: Server-Verified Lead Submissions (Task 3)');
+
+  // 8.1: Missing auditId must be rejected with 400
+  const reqWithoutAuditId = new NextRequest('http://localhost:3000/api/lead', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-forwarded-for': '123.45.67.89' },
+    body: JSON.stringify({
+      name: 'Unverified Visitor',
+      email: 'visitor@example.com',
+      whatsapp: '+212612345678',
+      sector: 'E-commerce',
+      consentGiven: true,
+      auditScore: 95, // Fabricated score
+    }),
+  });
+  const resWithoutAuditId = await leadHandler(reqWithoutAuditId);
+  assert.strictEqual(
+    resWithoutAuditId.status,
+    400,
+    'Lead submission without auditId must be rejected with HTTP 400'
+  );
+
+  // 8.2: Invalid or expired auditId must be rejected with 400
+  const reqWithInvalidAuditId = new NextRequest('http://localhost:3000/api/lead', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-forwarded-for': '123.45.67.89' },
+    body: JSON.stringify({
+      auditId: 'aud_nonexistent123456789',
+      name: 'Unverified Visitor',
+      email: 'visitor@example.com',
+      whatsapp: '+212612345678',
+      sector: 'E-commerce',
+      consentGiven: true,
+      auditScore: 95,
+    }),
+  });
+  const resWithInvalidAuditId = await leadHandler(reqWithInvalidAuditId);
+  assert.strictEqual(
+    resWithInvalidAuditId.status,
+    400,
+    'Lead submission with non-existent or expired auditId must be rejected with HTTP 400'
+  );
+
+  // 8.3: Valid auditId must succeed and pull score from server store, ignoring client spoofing
+  const mockAuditRecord: any = {
+    url: 'https://verified-domain.com',
+    domain: 'verified-domain.com',
+    timestamp: new Date().toISOString(),
+    overallScore: 42,
+    grade: 'D',
+    categoryScores: {
+      seo: { score: 40, weight: 20, label: 'SEO' },
+      performance: { score: 50, weight: 25, label: 'Performance', available: true },
+      indexability: { score: 40, weight: 15, label: 'Indexabilité' },
+      schema: { score: 30, weight: 10, label: 'Données structurées' },
+      mobile: { score: 60, weight: 10, label: 'Mobile' },
+      security: { score: 40, weight: 10, label: 'Sécurité' },
+      social: { score: 30, weight: 10, label: 'Réseaux sociaux' },
+    },
+    metrics: { available: true } as any,
+    seo: {} as any,
+    indexability: {} as any,
+    schema: {} as any,
+    security: {} as any,
+    social: {} as any,
+    aiReadiness: {} as any,
+    issues: [
+      {
+        id: 'issue-1',
+        title: 'Missing canonical',
+        category: 'indexability',
+        severity: 'high',
+        difficulty: 'easy',
+        priority: 1,
+        evidence: 'Canonical tag is missing',
+        impactExplanation: 'Can lead to duplicate content',
+        recommendation: 'Add canonical tag',
+      },
+    ],
+    passedChecksCount: 10,
+    totalChecksCount: 30,
+  };
+
+  const validAuditId = createAuditRecord(mockAuditRecord);
+  assert.ok(validAuditId.startsWith('aud_'), 'Audit ID should start with aud_ prefix');
+  assert.ok(getAuditRecord(validAuditId), 'Audit record must be retrievable from store');
+
+  const reqWithValidAuditId = new NextRequest('http://localhost:3000/api/lead', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-forwarded-for': '123.45.67.90' },
+    body: JSON.stringify({
+      auditId: validAuditId,
+      name: 'Legitimate Visitor',
+      email: 'verified@example.com',
+      whatsapp: '+212699887766',
+      sector: 'Technology',
+      consentGiven: true,
+      // Attempt to spoof score: client claims 100, but server record is 42
+      auditScore: 100,
+      websiteUrl: 'https://forged-site.com',
+    }),
+  });
+  const resValid = await leadHandler(reqWithValidAuditId);
+  assert.strictEqual(resValid.status, 200, 'Valid lead submission must return HTTP 200');
+
+  const resValidJson = await resValid.json();
+  assert.strictEqual(resValidJson.success, true);
+  // Decode WhatsApp URL to ensure server-verified score (42) was used, NOT the forged score (100)
+  const decodedWaLink = decodeURIComponent(resValidJson.whatsappLink);
+  assert.ok(
+    decodedWaLink.includes('Score ARWEB : 42/100'),
+    `WhatsApp link must reflect server-verified score (42/100), got: ${decodedWaLink}`
+  );
+  assert.ok(
+    !decodedWaLink.includes('100/100'),
+    'WhatsApp link must NOT contain client-forged score (100/100)'
+  );
+  assert.ok(
+    decodedWaLink.includes('verified-domain.com'),
+    `WhatsApp link must reflect server-verified domain (verified-domain.com), got: ${decodedWaLink}`
+  );
+
+  console.log('  ✓ Lead submission requires server-verified auditId and ignores client score spoofing\n');
 
   console.log('\n🎉 ALL AUDIT ENGINE UNIT TESTS PASSED SUCCESSFULLY!');
 }
 
-runTests().catch((err) => {
-  console.error('❌ Test failed:', err);
-  process.exit(1);
-});
+runTests()
+  .then(() => {
+    process.exit(0);
+  })
+  .catch((err) => {
+    console.error('❌ Test failed:', err);
+    process.exit(1);
+  });

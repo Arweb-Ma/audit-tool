@@ -149,6 +149,7 @@ export interface CategoryScores {
 }
 
 export interface AuditResult {
+  auditId?: string;
   url: string;
   domain: string;
   timestamp: string;
@@ -168,6 +169,7 @@ export interface AuditResult {
 }
 
 export interface LeadSubmissionPayload {
+  auditId?: string;
   name: string;
   email: string;
   whatsapp: string;

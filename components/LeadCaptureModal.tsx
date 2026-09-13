@@ -70,6 +70,7 @@ export const LeadCaptureModal: React.FC<LeadCaptureModalProps> = ({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          auditId: auditResult.auditId,
           name: name.trim(),
           email: email.trim(),
           whatsapp: whatsapp.trim(),

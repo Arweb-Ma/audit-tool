@@ -10,6 +10,7 @@ import { computeAuditScores } from '@/lib/audit/scoring';
 import { generatePrioritizedIssues } from '@/lib/audit/issues';
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
 import { getCachedAudit, setCachedAudit } from '@/lib/cache';
+import { createAuditRecord } from '@/lib/audit-store';
 import { config } from '@/lib/config';
 import { logger } from '@/lib/logger';
 import { AuditResult } from '@/types/audit';
@@ -54,7 +55,8 @@ export async function POST(req: NextRequest) {
     const cached = getCachedAudit(targetUrl.href);
     if (cached) {
       logger.info('Audit served from cache', { domain, url: targetUrl.href });
-      return NextResponse.json(cached);
+      const auditId = createAuditRecord(cached);
+      return NextResponse.json({ ...cached, auditId });
     }
 
     logger.info('Starting audit analysis', { domain, url: targetUrl.href });
@@ -129,6 +131,10 @@ export async function POST(req: NextRequest) {
       totalChecksCount: scoringResult.totalChecksCount,
     };
 
+    // Register server-side verified audit record (TTL: 30 minutes)
+    const auditId = createAuditRecord(auditResult);
+    auditResult.auditId = auditId;
+
     // Save to cache (only cache if PageSpeed was successfully retrieved)
     if (perfMetrics.available) {
       setCachedAudit(targetUrl.href, auditResult);
@@ -136,6 +142,7 @@ export async function POST(req: NextRequest) {
 
     logger.info('Audit completed successfully', {
       domain,
+      auditId,
       score: auditResult.overallScore,
       grade: auditResult.grade,
       issuesCount: issues.length,
