@@ -49,11 +49,11 @@ export const AuditProgressModal: React.FC<AuditProgressModalProps> = ({ isOpen, 
 
     const interval = setInterval(() => {
       setProgressPct((prev) => (prev >= 95 ? 95 : prev + 1));
-    }, 60);
+    }, 220);
 
-    const step1Timer = setTimeout(() => setCurrentStepIndex(1), 1400);
-    const step2Timer = setTimeout(() => setCurrentStepIndex(2), 3200);
-    const step3Timer = setTimeout(() => setCurrentStepIndex(3), 4800);
+    const step1Timer = setTimeout(() => setCurrentStepIndex(1), 2500);
+    const step2Timer = setTimeout(() => setCurrentStepIndex(2), 6500);
+    const step3Timer = setTimeout(() => setCurrentStepIndex(3), 14000);
 
     return () => {
       clearInterval(interval);

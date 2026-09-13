@@ -101,10 +101,18 @@ export async function fetchRealPageSpeedMetrics(
     clearTimeout(timer);
 
     if (!res.ok) {
+      const errText = await res.text().catch(() => '');
       logger.warn('PageSpeed API returned non-200 status', {
         status: res.status,
+        error: errText.slice(0, 300),
         url: targetUrl,
       });
+
+      if (res.status === 429) {
+        defaultUnavailable.note = 'Le quota de requêtes Google PageSpeed a été atteint. Les données TTFB serveur restent fiables.';
+      } else if (res.status === 400 || res.status === 500) {
+        defaultUnavailable.note = `Google PageSpeed n'a pas pu analyser cette page (${res.status}). Vérifiez que le site est publiquement accessible sans protection anti-bot stricte.`;
+      }
       return defaultUnavailable;
     }
 
