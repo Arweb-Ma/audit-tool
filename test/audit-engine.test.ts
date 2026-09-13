@@ -712,6 +712,43 @@ const brokenIssues = generatePrioritizedIssues(
 
   console.log('  ✓ getClientIp handles TRUSTED_PROXY_COUNT and edge headers securely\n');
 
+  // --- Test 12: Task 7 - Depth Guard in JSON-LD Parsing ---
+  console.log('Test 12: Depth Guard in JSON-LD Parsing (Task 7)');
+
+  // Build a deeply nested JSON-LD structure (30 levels deep)
+  let deepObj: any = { '@type': 'DeepAdversarialType' };
+  for (let i = 30; i >= 1; i--) {
+    const parent: any = { nested: deepObj };
+    if (i === 5) {
+      parent['@type'] = 'ValidOrganization';
+    }
+    deepObj = parent;
+  }
+
+  const deepHtml = `
+    <html>
+      <head>
+        <script type="application/ld+json">
+          ${JSON.stringify(deepObj)}
+        </script>
+      </head>
+      <body></body>
+    </html>
+  `;
+
+  const schemaResult = analyzeStructuredData(deepHtml);
+  assert.strictEqual(
+    schemaResult.detectedTypes.includes('ValidOrganization'),
+    true,
+    'Schema parser must detect types within safe depth limit (depth 5)'
+  );
+  assert.strictEqual(
+    schemaResult.detectedTypes.includes('DeepAdversarialType'),
+    false,
+    'Schema parser must NOT recurse past maxDepth (20) to detect DeepAdversarialType at depth 30'
+  );
+  console.log('  ✓ Schema parser stops recursion at maxDepth without stack overflow\n');
+
   console.log('\n🎉 ALL AUDIT ENGINE UNIT TESTS PASSED SUCCESSFULLY!');
 }
 

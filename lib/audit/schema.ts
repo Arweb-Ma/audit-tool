@@ -1,11 +1,18 @@
 import * as cheerio from 'cheerio';
 import { SchemaMetrics } from '../../types/audit';
 
-function extractTypesFromObject(obj: any, collected: Set<string>) {
-  if (!obj || typeof obj !== 'object') return;
+export const MAX_SCHEMA_DEPTH = 20;
+
+export function extractTypesFromObject(
+  obj: any,
+  collected: Set<string>,
+  currentDepth = 0,
+  maxDepth = MAX_SCHEMA_DEPTH
+): void {
+  if (!obj || typeof obj !== 'object' || currentDepth > maxDepth) return;
 
   if (Array.isArray(obj)) {
-    obj.forEach((item) => extractTypesFromObject(item, collected));
+    obj.forEach((item) => extractTypesFromObject(item, collected, currentDepth + 1, maxDepth));
     return;
   }
 
@@ -20,13 +27,13 @@ function extractTypesFromObject(obj: any, collected: Set<string>) {
 
   // Check @graph
   if (Array.isArray(obj['@graph'])) {
-    obj['@graph'].forEach((item: any) => extractTypesFromObject(item, collected));
+    obj['@graph'].forEach((item: any) => extractTypesFromObject(item, collected, currentDepth + 1, maxDepth));
   }
 
   // Recurse on object values to find nested schemas (e.g. publisher, author, offers)
   for (const key of Object.keys(obj)) {
     if (key !== '@context' && typeof obj[key] === 'object') {
-      extractTypesFromObject(obj[key], collected);
+      extractTypesFromObject(obj[key], collected, currentDepth + 1, maxDepth);
     }
   }
 }
