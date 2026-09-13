@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { normalizeTargetUrl, SsrfBlockError } from '@/lib/audit/url';
 import { safeFetchTargetHtml } from '@/lib/audit/fetch';
-import { fetchRealPageSpeedMetrics } from '@/lib/audit/performance';
+import { fetchRealPageSpeedMetrics, attachDirectMetrics } from '@/lib/audit/performance';
 import { analyzeSeo } from '@/lib/audit/seo';
 import { analyzeIndexability } from '@/lib/audit/indexability';
 import { analyzeStructuredData } from '@/lib/audit/schema';
@@ -59,6 +59,9 @@ export async function POST(req: NextRequest) {
 
     logger.info('Starting audit analysis', { domain, url: targetUrl.href });
 
+    // Launch PageSpeed concurrently immediately to gain 2-3s of execution window
+    const pageSpeedPromise = fetchRealPageSpeedMetrics(targetUrl.href);
+
     // 4. Safe HTTP Fetch with SSRF pre-flight DNS check, redirect check, size limit
     const fetchResult = await safeFetchTargetHtml(targetUrl);
 
@@ -72,7 +75,7 @@ export async function POST(req: NextRequest) {
       fetchResult.finalUrl
     );
 
-    const [indexMetrics, perfMetrics] = await Promise.all([
+    const [indexMetrics, rawPerfMetrics] = await Promise.all([
       analyzeIndexability(
         fetchResult.html,
         fetchResult.headers,
@@ -81,8 +84,11 @@ export async function POST(req: NextRequest) {
         fetchResult.isRedirected,
         fetchResult.redirectChainCount
       ),
-      fetchRealPageSpeedMetrics(fetchResult.finalUrl, fetchResult.ttfbMs, seoMetrics.hasViewport),
+      pageSpeedPromise,
     ]);
+
+    // Attach measured direct server TTFB and mobile viewport friendliness
+    const perfMetrics = attachDirectMetrics(rawPerfMetrics, fetchResult.ttfbMs, seoMetrics.hasViewport);
 
     // 6. Independent Composite ARWEB Scoring
     const scoringResult = computeAuditScores(

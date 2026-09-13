@@ -9,7 +9,7 @@ interface HeroSectionProps {
   isLoading: boolean;
 }
 
-const SAMPLE_URLS = ['stripe.com', 'airbnb.com', 'nike.com', 'hubspot.com'];
+const SAMPLE_URLS = ['arweb.ma', 'wikipedia.org', 'google.com'];
 
 export const HeroSection: React.FC<HeroSectionProps> = ({ onAnalyze, isLoading }) => {
   const [inputUrl, setInputUrl] = useState('');

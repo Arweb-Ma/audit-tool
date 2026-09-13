@@ -26,21 +26,43 @@ function getSpeedIndexStatus(seconds: number): MetricItem['status'] {
   return 'poor';
 }
 
-function getTtfbStatus(ms: number): MetricItem['status'] {
+export function getTtfbStatus(ms: number): MetricItem['status'] {
   if (ms <= 800) return 'good';
   if (ms <= 1800) return 'needs-improvement';
   return 'poor';
 }
 
-export async function fetchRealPageSpeedMetrics(
-  targetUrl: string,
+export function attachDirectMetrics(
+  metrics: CoreWebVitals,
   directTtfbMs: number,
   mobileFriendlyByViewport: boolean
+): CoreWebVitals {
+  metrics.directTtfbMs = directTtfbMs;
+  metrics.mobileFriendly = mobileFriendlyByViewport;
+
+  // If lab TTFB wasn't available, or it was unavailable, ensure direct TTFB is shown
+  if (!metrics.available || metrics.ttfb.status === 'unavailable') {
+    metrics.ttfb = {
+      value: `${directTtfbMs} ms`,
+      numVal: directTtfbMs,
+      status: getTtfbStatus(directTtfbMs),
+      label: 'Temps de premier octet (TTFB)',
+      target: '≤ 800 ms',
+      description: 'Temps de réponse initial du serveur avant le début du téléchargement.',
+    };
+  }
+  return metrics;
+}
+
+export async function fetchRealPageSpeedMetrics(
+  targetUrl: string,
+  directTtfbMs: number = 0,
+  mobileFriendlyByViewport: boolean = true
 ): Promise<CoreWebVitals> {
   const apiKey = config.audit.pagespeedApiKey;
   const endpoint = `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${encodeURIComponent(
     targetUrl
-  )}&strategy=mobile${apiKey ? `&key=${apiKey}` : ''}`;
+  )}&strategy=mobile&category=performance${apiKey ? `&key=${apiKey}` : ''}`;
 
   const defaultUnavailable: CoreWebVitals = {
     available: false,
@@ -48,7 +70,9 @@ export async function fetchRealPageSpeedMetrics(
     fieldDataAvailable: false,
     mobileFriendly: mobileFriendlyByViewport,
     directTtfbMs,
-    note: 'Mesures PageSpeed indisponibles (API non configurée ou limite de requêtes atteinte).',
+    note: apiKey
+      ? 'Mesures de laboratoire Google Lighthouse non disponibles pour cette URL. Seul le TTFB direct a été mesuré.'
+      : 'Clé API Google PageSpeed non configurée.',
     lcp: {
       value: 'Non mesuré',
       status: 'unavailable',
@@ -108,12 +132,13 @@ export async function fetchRealPageSpeedMetrics(
         url: targetUrl,
       });
 
+      const result: CoreWebVitals = { ...defaultUnavailable };
       if (res.status === 429) {
-        defaultUnavailable.note = 'Le quota de requêtes Google PageSpeed a été atteint. Les données TTFB serveur restent fiables.';
+        result.note = 'Le quota de requêtes Google PageSpeed a été temporairement atteint. Les données TTFB serveur restent fiables.';
       } else if (res.status === 400 || res.status === 500) {
-        defaultUnavailable.note = `Google PageSpeed n'a pas pu analyser cette page (${res.status}). Vérifiez que le site est publiquement accessible sans protection anti-bot stricte.`;
+        result.note = `Google PageSpeed n'a pas pu analyser cette page (${res.status}). Le site bloque peut-être les robots d'exploration ou utilise des scripts anti-bot stricts.`;
       }
-      return defaultUnavailable;
+      return result;
     }
 
     const data = await res.json();
@@ -190,8 +215,27 @@ export async function fetchRealPageSpeedMetrics(
         description: 'Temps de réponse initial du serveur avant le début du téléchargement.',
       },
     };
-  } catch (err) {
-    logger.warn('Error fetching PageSpeed metrics', { error: String(err), url: targetUrl });
-    return defaultUnavailable;
+  } catch (err: any) {
+    const isTimeout = err?.name === 'AbortError' || err?.message?.toLowerCase().includes('abort');
+    const result: CoreWebVitals = {
+      ...defaultUnavailable,
+      directTtfbMs,
+      mobileFriendly: mobileFriendlyByViewport,
+      ttfb: {
+        value: `${directTtfbMs} ms`,
+        numVal: directTtfbMs,
+        status: getTtfbStatus(directTtfbMs),
+        label: 'Temps de premier octet direct (TTFB)',
+        target: '≤ 800 ms',
+        description: 'Mesure directe du temps de réponse initial du serveur.',
+      },
+    };
+    if (isTimeout) {
+      result.note = `Le site a dépassé le délai maximal d'analyse Google Lighthouse (25s) en raison d'un poids de page exceptionnel ou de nombreux scripts tiers bloquants. Le temps de réponse serveur direct (${directTtfbMs} ms) et l'audit technique complet restent mesurés avec précision.`;
+    } else {
+      result.note = "Google PageSpeed n'a pas pu compléter l'analyse pour cette page. Les métriques serveur directes (TTFB) et l'audit technique restent mesurés.";
+    }
+    logger.warn('Error fetching PageSpeed metrics', { error: String(err), url: targetUrl, isTimeout });
+    return result;
   }
 }
