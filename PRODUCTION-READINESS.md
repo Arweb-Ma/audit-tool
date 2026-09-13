@@ -34,6 +34,9 @@ RATE_LIMIT_AUDITS_PER_HOUR=10
 RATE_LIMIT_LEADS_PER_HOUR=5
 AUDIT_TIMEOUT_MS=10000
 AUDIT_CACHE_TTL_SECONDS=900
+
+# Nombre de proxys de confiance en amont (optionnel pour VPS / Nginx afin d'éviter le spoofing X-Forwarded-For)
+TRUSTED_PROXY_COUNT=0
 ```
 
 ---

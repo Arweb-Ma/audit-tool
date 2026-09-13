@@ -37,6 +37,9 @@ export const config = {
     get cacheTtlSeconds(): number {
       return Number(process.env.AUDIT_CACHE_TTL_SECONDS) || 900; // 15 min
     },
+    get trustedProxyCount(): number {
+      return Number(process.env.TRUSTED_PROXY_COUNT) || 0;
+    },
   },
   database: {
     get supabaseUrl(): string {

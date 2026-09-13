@@ -171,16 +171,56 @@ export async function checkRateLimit(
 }
 
 /**
- * Extracts client IP safely from NextRequest headers
+ * Extracts client IP safely from NextRequest headers.
+ *
+ * Trust Model & Deployment Context:
+ * 1. Managed Edge (Netlify, Cloudflare):
+ *    - The edge proxy terminates the public connection and injects verified headers:
+ *      'x-nf-client-connection-ip' (Netlify) or 'cf-connecting-ip' (Cloudflare).
+ *    - These platform headers are injected at the edge and cannot be spoofed by clients.
+ * 2. Reverse Proxy / VPS Deployments:
+ *    - If behind N trusted reverse proxies (e.g. Nginx, load balancers), configure
+ *      the TRUSTED_PROXY_COUNT environment variable (e.g. TRUSTED_PROXY_COUNT=1).
+ *    - In this mode, X-Forwarded-For is parsed from the right side:
+ *      ips[ips.length - trustedProxyCount], effectively ignoring any attacker-prepended
+ *      leftmost spoofed IP addresses.
+ * 3. Default Managed Edge Fallback:
+ *    - When TRUSTED_PROXY_COUNT is not set, we trust that the hosting edge strips
+ *      untrusted incoming headers or uses ips[0] / x-real-ip.
  */
 export function getClientIp(headers: Headers): string {
+  // 1. Netlify Edge provides the verified client IP
+  const netlifyIp = headers.get('x-nf-client-connection-ip');
+  if (netlifyIp && netlifyIp.trim()) {
+    return netlifyIp.trim();
+  }
+
+  // 2. Cloudflare provides the verified client IP
+  const cfIp = headers.get('cf-connecting-ip');
+  if (cfIp && cfIp.trim()) {
+    return cfIp.trim();
+  }
+
+  // 3. X-Forwarded-For with TRUSTED_PROXY_COUNT safeguard
   const forwarded = headers.get('x-forwarded-for');
   if (forwarded) {
-    return forwarded.split(',')[0].trim();
+    const ips = forwarded.split(',').map((s) => s.trim()).filter(Boolean);
+    if (ips.length > 0) {
+      const trustedProxyCount = Number(process.env.TRUSTED_PROXY_COUNT);
+      if (!isNaN(trustedProxyCount) && trustedProxyCount > 0) {
+        // Pick IP from the right side according to number of trusted proxy hops
+        const index = Math.max(0, ips.length - trustedProxyCount);
+        return ips[index];
+      }
+      return ips[0];
+    }
   }
+
+  // 4. X-Real-IP fallback (e.g., set by single Nginx proxy)
   const realIp = headers.get('x-real-ip');
-  if (realIp) {
+  if (realIp && realIp.trim()) {
     return realIp.trim();
   }
+
   return '127.0.0.1';
 }

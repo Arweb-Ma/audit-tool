@@ -9,7 +9,7 @@ import { generatePrioritizedIssues } from '../lib/audit/issues';
 import { POST as leadHandler } from '../app/api/lead/route';
 import { createAuditRecord, getAuditRecord } from '../lib/audit-store';
 import { config } from '../lib/config';
-import { checkRateLimit } from '../lib/rate-limit';
+import { checkRateLimit, getClientIp } from '../lib/rate-limit';
 import { getCachedAudit, setCachedAudit } from '../lib/cache';
 
 async function runTests() {
@@ -663,6 +663,54 @@ const brokenIssues = generatePrioritizedIssues(
     delete process.env.SUPABASE_URL;
     delete process.env.SUPABASE_SERVICE_ROLE_KEY;
   }
+
+  // --- Test 11: Task 6 - Harden getClientIp Against Header Spoofing ---
+  console.log('Test 11: getClientIp Spoofing Hardening (Task 6)');
+
+  // 11.1: When TRUSTED_PROXY_COUNT is 1, take the IP added by the trusted proxy, not client spoof
+  process.env.TRUSTED_PROXY_COUNT = '1';
+  const spoofedHeaders = new Headers();
+  spoofedHeaders.set('x-forwarded-for', '1.1.1.1, 203.0.113.195');
+
+  const ipFromProxy = getClientIp(spoofedHeaders);
+  assert.strictEqual(
+    ipFromProxy,
+    '203.0.113.195',
+    'With TRUSTED_PROXY_COUNT=1, getClientIp must select the verified IP added by the proxy (203.0.113.195), not the spoofed 1.1.1.1'
+  );
+
+  // 11.2: When TRUSTED_PROXY_COUNT is 2 (e.g. Cloudflare -> Nginx -> Node)
+  process.env.TRUSTED_PROXY_COUNT = '2';
+  const multiHopHeaders = new Headers();
+  multiHopHeaders.set('x-forwarded-for', '1.1.1.1, 203.0.113.195, 10.0.0.2');
+  const ipMultiHop = getClientIp(multiHopHeaders);
+  assert.strictEqual(
+    ipMultiHop,
+    '203.0.113.195',
+    'With TRUSTED_PROXY_COUNT=2, getClientIp must select the IP before the last 2 trusted hops'
+  );
+
+  // 11.3: Netlify / Cloudflare edge headers take precedence
+  delete process.env.TRUSTED_PROXY_COUNT;
+  const netlifyHeaders = new Headers();
+  netlifyHeaders.set('x-nf-client-connection-ip', '198.51.100.77');
+  netlifyHeaders.set('x-forwarded-for', '1.1.1.1');
+  assert.strictEqual(
+    getClientIp(netlifyHeaders),
+    '198.51.100.77',
+    'Netlify edge header x-nf-client-connection-ip must take precedence over spoofed x-forwarded-for'
+  );
+
+  const cfHeaders = new Headers();
+  cfHeaders.set('cf-connecting-ip', '198.51.100.88');
+  cfHeaders.set('x-forwarded-for', '1.1.1.1');
+  assert.strictEqual(
+    getClientIp(cfHeaders),
+    '198.51.100.88',
+    'Cloudflare header cf-connecting-ip must take precedence over spoofed x-forwarded-for'
+  );
+
+  console.log('  ✓ getClientIp handles TRUSTED_PROXY_COUNT and edge headers securely\n');
 
   console.log('\n🎉 ALL AUDIT ENGINE UNIT TESTS PASSED SUCCESSFULLY!');
 }
