@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { saveLead } from '@/lib/db/leads';
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
-import { getAuditRecord } from '@/lib/audit-store';
+import { getPersistentAuditRecord } from '@/lib/audit-store';
 import { config } from '@/lib/config';
 import { logger } from '@/lib/logger';
 import { LeadSubmissionPayload } from '@/types/audit';
@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const verifiedAudit = getAuditRecord(auditId.trim());
+    const verifiedAudit = await getPersistentAuditRecord(auditId.trim());
     if (!verifiedAudit) {
       return NextResponse.json(
         { error: 'Session d\'audit expirée ou introuvable. Veuillez relancer une analyse pour débloquer votre plan d\'action.' },

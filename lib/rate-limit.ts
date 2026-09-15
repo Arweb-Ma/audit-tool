@@ -1,4 +1,5 @@
 import { config } from './config';
+import { hasPostgresDatabase, queryPostgres } from './db/postgres';
 import { logger } from './logger';
 
 interface RateLimitRecord {
@@ -153,12 +154,45 @@ async function checkRateLimitSupabase(
   }
 }
 
+async function checkRateLimitPostgres(key: string, maxAllowed: number): Promise<RateLimitResult | null> {
+  if (!hasPostgresDatabase()) return null;
+
+  try {
+    const rows = await queryPostgres<{
+      success: boolean;
+      limit_value: number;
+      remaining: number;
+      reset_in_seconds: number;
+    }>(
+      'SELECT * FROM arweb_consume_rate_limit($1, $2, $3)',
+      [key, maxAllowed, Math.floor(WINDOW_MS / 1000)]
+    );
+    const row = rows[0];
+    if (!row) return null;
+
+    return {
+      success: row.success,
+      limit: row.limit_value,
+      remaining: row.remaining,
+      resetInSeconds: row.reset_in_seconds,
+    };
+  } catch (err) {
+    logger.error('PostgreSQL rate-limit function failed', { error: String(err) });
+    return null;
+  }
+}
+
 export async function checkRateLimit(
   identifier: string,
   prefix: 'audit' | 'lead',
   maxAllowed: number
 ): Promise<RateLimitResult> {
   const key = `${prefix}:${identifier}`;
+
+  const postgresResult = await checkRateLimitPostgres(key, maxAllowed);
+  if (postgresResult !== null) {
+    return postgresResult;
+  }
 
   if (config.database.supabaseUrl && config.database.supabaseServiceRoleKey) {
     const sbResult = await checkRateLimitSupabase(key, maxAllowed);
