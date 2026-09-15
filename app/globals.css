@@ -58,6 +58,71 @@ h1, h2, h3, h4, .heading {
   text-transform: uppercase;
 }
 
+/* Audit form ambient background */
+#audit-form {
+  isolation: isolate;
+  background: linear-gradient(135deg, #ffffff 0%, #f4f8ff 52%, #ffffff 100%);
+}
+
+.audit-form-background {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.audit-form-glow {
+  position: absolute;
+  width: 34rem;
+  aspect-ratio: 1;
+  border-radius: 999px;
+  filter: blur(18px);
+  opacity: 0.38;
+  will-change: transform;
+}
+
+.audit-form-glow-one {
+  top: -17rem;
+  left: -11rem;
+  background: radial-gradient(circle, rgba(11, 87, 208, 0.22) 0%, rgba(232, 240, 254, 0) 68%);
+  animation: audit-glow-drift-one 18s ease-in-out infinite alternate;
+}
+
+.audit-form-glow-two {
+  right: -15rem;
+  bottom: -22rem;
+  background: radial-gradient(circle, rgba(91, 143, 230, 0.2) 0%, rgba(232, 240, 254, 0) 70%);
+  animation: audit-glow-drift-two 22s ease-in-out infinite alternate;
+}
+
+.audit-form-grid {
+  position: absolute;
+  inset: 0;
+  opacity: 0.32;
+  background-image:
+    linear-gradient(rgba(11, 87, 208, 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(11, 87, 208, 0.045) 1px, transparent 1px);
+  background-size: 42px 42px;
+  mask-image: linear-gradient(to bottom, transparent, black 18%, black 75%, transparent);
+  animation: audit-grid-drift 26s linear infinite;
+}
+
+@keyframes audit-glow-drift-one {
+  from { transform: translate3d(0, 0, 0) scale(1); }
+  to { transform: translate3d(5rem, 4rem, 0) scale(1.14); }
+}
+
+@keyframes audit-glow-drift-two {
+  from { transform: translate3d(0, 0, 0) scale(1); }
+  to { transform: translate3d(-5rem, -3rem, 0) scale(1.12); }
+}
+
+@keyframes audit-grid-drift {
+  from { background-position: 0 0; }
+  to { background-position: 42px 42px; }
+}
+
 /* Buttons */
 .button {
   display: inline-flex;
@@ -232,5 +297,12 @@ h1, h2, h3, h4, .heading {
   }
   .trusted-strip span:nth-child(-n+2) {
     border-bottom: 1px solid var(--line);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .audit-form-glow,
+  .audit-form-grid {
+    animation: none;
   }
 }

@@ -33,6 +33,12 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onAnalyze, isLoading }
 
   return (
     <section className="relative pt-12 pb-16 md:pt-16 md:pb-20 overflow-hidden" id="audit-form">
+      <div className="audit-form-background" aria-hidden="true">
+        <span className="audit-form-glow audit-form-glow-one" />
+        <span className="audit-form-glow audit-form-glow-two" />
+        <span className="audit-form-grid" />
+      </div>
+
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
         {/* Overline Badge */}
         <motion.p
@@ -142,7 +148,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onAnalyze, isLoading }
       </div>
 
       {/* Trusted Strip from main-site */}
-      <div className="trusted-strip mt-14" aria-label="Expertises principales">
+      <div className="trusted-strip relative z-10 mt-14" aria-label="Expertises principales">
         <span>Création web</span>
         <span>SEO multilingue</span>
         <span>Analytics</span>
