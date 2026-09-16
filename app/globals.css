@@ -58,10 +58,43 @@ h1, h2, h3, h4, .heading {
   text-transform: uppercase;
 }
 
-/* Audit form ambient background */
+/* Audit form hero */
 #audit-form {
   isolation: isolate;
-  background: linear-gradient(135deg, #ffffff 0%, #f4f8ff 52%, #ffffff 100%);
+  background:
+    radial-gradient(circle at 14% 18%, rgba(38, 123, 255, 0.34), transparent 30rem),
+    radial-gradient(circle at 87% 72%, rgba(17, 95, 224, 0.26), transparent 28rem),
+    linear-gradient(125deg, #061632 0%, #082657 48%, #071a3a 100%);
+}
+
+.audit-hero-content {
+  padding-bottom: 5.5rem;
+}
+
+#audit-form .overline {
+  width: fit-content;
+  margin: 0 auto 1.5rem;
+  padding: 0.42rem 0.85rem;
+  border: 1px solid rgba(184, 213, 255, 0.28);
+  border-radius: 999px;
+  color: #d9e8ff;
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.11);
+  backdrop-filter: blur(12px);
+}
+
+#audit-form h1 {
+  color: #ffffff;
+  text-wrap: balance;
+  text-shadow: 0 12px 40px rgba(0, 0, 0, 0.18);
+}
+
+#audit-form h1 span {
+  color: #8fc1ff;
+}
+
+#audit-form .text-\[\#5f6368\] {
+  color: #c8d6ec;
 }
 
 .audit-form-background {
@@ -77,35 +110,130 @@ h1, h2, h3, h4, .heading {
   width: 34rem;
   aspect-ratio: 1;
   border-radius: 999px;
-  filter: blur(18px);
-  opacity: 0.38;
+  filter: blur(28px);
+  opacity: 0.74;
   will-change: transform;
 }
 
 .audit-form-glow-one {
   top: -17rem;
   left: -11rem;
-  background: radial-gradient(circle, rgba(11, 87, 208, 0.22) 0%, rgba(232, 240, 254, 0) 68%);
+  background: radial-gradient(circle, rgba(69, 148, 255, 0.35) 0%, rgba(43, 111, 232, 0) 68%);
   animation: audit-glow-drift-one 18s ease-in-out infinite alternate;
 }
 
 .audit-form-glow-two {
   right: -15rem;
   bottom: -22rem;
-  background: radial-gradient(circle, rgba(91, 143, 230, 0.2) 0%, rgba(232, 240, 254, 0) 70%);
+  background: radial-gradient(circle, rgba(35, 99, 255, 0.34) 0%, rgba(11, 67, 180, 0) 70%);
   animation: audit-glow-drift-two 22s ease-in-out infinite alternate;
 }
 
 .audit-form-grid {
   position: absolute;
   inset: 0;
-  opacity: 0.32;
+  opacity: 0.42;
   background-image:
-    linear-gradient(rgba(11, 87, 208, 0.045) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(11, 87, 208, 0.045) 1px, transparent 1px);
+    linear-gradient(rgba(191, 219, 254, 0.1) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(191, 219, 254, 0.1) 1px, transparent 1px);
   background-size: 42px 42px;
   mask-image: linear-gradient(to bottom, transparent, black 18%, black 75%, transparent);
   animation: audit-grid-drift 26s linear infinite;
+}
+
+.audit-hero-form {
+  position: relative;
+  margin-top: 2.7rem;
+  padding: 0.7rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 1.55rem;
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 28px 72px rgba(1, 12, 36, 0.34), inset 0 1px 0 rgba(255, 255, 255, 0.13);
+  backdrop-filter: blur(18px);
+}
+
+.audit-hero-form-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin: 0.1rem 0 0.7rem;
+  color: #d9e8ff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.audit-hero-form-label::before {
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 50%;
+  background: #70e0aa;
+  box-shadow: 0 0 0 4px rgba(112, 224, 170, 0.16);
+  content: '';
+}
+
+#audit-form .audit-hero-form form > div {
+  min-height: 4.5rem;
+  padding: 0.35rem;
+  border: 1px solid rgba(9, 38, 92, 0.12);
+  border-radius: 1.15rem;
+  background: #ffffff;
+  box-shadow: 0 10px 26px rgba(3, 18, 50, 0.12);
+}
+
+#audit-form .audit-hero-form form > div:focus-within {
+  border-color: #0b57d0;
+  box-shadow: 0 0 0 4px rgba(143, 193, 255, 0.34), 0 12px 28px rgba(3, 18, 50, 0.15);
+}
+
+#audit-form .audit-hero-form button[type='submit'] {
+  min-height: 3.5rem;
+  padding-inline: 1.65rem;
+  border: 0;
+  background: linear-gradient(135deg, #0b57d0, #1646a8);
+  box-shadow: 0 10px 20px rgba(11, 87, 208, 0.28);
+}
+
+#audit-form .audit-hero-form button[type='submit']:hover {
+  background: linear-gradient(135deg, #1269f0, #0c3d9b);
+  box-shadow: 0 14px 25px rgba(11, 87, 208, 0.38);
+}
+
+.audit-hero-form > p:not(.audit-hero-form-label) {
+  color: #ffb7b1;
+}
+
+.audit-hero-form > p:last-of-type {
+  margin: 0.75rem 0 0.1rem;
+  color: #c8d6ec;
+}
+
+.audit-hero-samples button {
+  border-color: rgba(184, 213, 255, 0.24);
+  color: #dceaff;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.audit-hero-samples button:hover {
+  border-color: rgba(184, 213, 255, 0.55);
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.16);
+}
+
+#audit-form .audit-hero-trust {
+  max-width: 1120px;
+  border-color: rgba(184, 213, 255, 0.17);
+  background: rgba(1, 17, 48, 0.3);
+}
+
+#audit-form .audit-hero-trust span {
+  border-color: rgba(184, 213, 255, 0.17);
+  color: #e0ebfb;
+}
+
+#audit-form .audit-hero-trust span::before {
+  color: #78dbac;
 }
 
 @keyframes audit-glow-drift-one {

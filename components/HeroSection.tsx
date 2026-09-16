@@ -32,14 +32,14 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onAnalyze, isLoading }
   };
 
   return (
-    <section className="relative pt-12 pb-16 md:pt-16 md:pb-20 overflow-hidden" id="audit-form">
+    <section className="audit-hero relative pt-14 pb-0 md:pt-20 overflow-hidden" id="audit-form">
       <div className="audit-form-background" aria-hidden="true">
         <span className="audit-form-glow audit-form-glow-one" />
         <span className="audit-form-glow audit-form-glow-two" />
         <span className="audit-form-grid" />
       </div>
 
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
+      <div className="audit-hero-content max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
         {/* Overline Badge */}
         <motion.p
           initial={{ opacity: 0, y: -10 }}
@@ -75,8 +75,9 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onAnalyze, isLoading }
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.3 }}
-          className="max-w-2xl mx-auto mb-4"
+          className="audit-hero-form max-w-2xl mx-auto mb-4"
         >
+          <p className="audit-hero-form-label">Diagnostic technique instantane</p>
           <form onSubmit={handleSubmit} className="relative">
             <div className="flex flex-col sm:flex-row items-center p-2 rounded-full bg-white border border-[#dadce0] focus-within:border-[#0b57d0] focus-within:ring-4 focus-within:ring-[#0b57d0]/15 shadow-sm transition-all duration-200">
               <div className="flex items-center w-full pl-4 pr-2 py-2 sm:py-0">
@@ -131,7 +132,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onAnalyze, isLoading }
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5, delay: 0.4 }}
-          className="flex flex-wrap items-center justify-center gap-2 text-xs text-[#5f6368] mt-6"
+          className="audit-hero-samples flex flex-wrap items-center justify-center gap-2 text-xs text-[#5f6368] mt-6"
         >
           <span className="font-medium">Ou tester un exemple :</span>
           {SAMPLE_URLS.map((sample) => (
@@ -148,7 +149,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onAnalyze, isLoading }
       </div>
 
       {/* Trusted Strip from main-site */}
-      <div className="trusted-strip relative z-10 mt-14" aria-label="Expertises principales">
+      <div className="trusted-strip audit-hero-trust relative z-10 mt-14" aria-label="Expertises principales">
         <span>Création web</span>
         <span>SEO multilingue</span>
         <span>Analytics</span>
