@@ -1,5 +1,5 @@
-import crypto from 'node:crypto';
 import { AuditResult } from '../types/audit';
+import { createAuditToken } from './audit-token';
 
 interface StoredAuditRecord {
   data: AuditResult;
@@ -12,10 +12,11 @@ const auditRecordStore = new Map<string, StoredAuditRecord>();
 export const AUDIT_RECORD_TTL_SECONDS = 30 * 60;
 
 /**
- * Creates and stores a server-side audit record keyed by an unguessable auditId.
+ * Creates an audit record. The returned auditId is a signed token (see audit-token.ts) that any
+ * server instance can verify on its own; the in-memory copy is only a convenience for this instance.
  */
 export function createAuditRecord(result: AuditResult, ttlSeconds = AUDIT_RECORD_TTL_SECONDS): string {
-  const auditId = `aud_${crypto.randomUUID().replace(/-/g, '')}`;
+  const auditId = createAuditToken(result);
   setAuditRecord(auditId, result, ttlSeconds);
   return auditId;
 }

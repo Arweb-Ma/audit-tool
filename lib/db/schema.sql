@@ -40,3 +40,8 @@ CREATE TABLE IF NOT EXISTS arweb_cache (
 );
 
 CREATE INDEX IF NOT EXISTS idx_arweb_cache_expires_at ON arweb_cache(expires_at);
+
+-- Accès réservé au serveur (clé service_role, qui ignore RLS). La clé publique ne voit rien.
+ALTER TABLE arweb_leads ENABLE ROW LEVEL SECURITY;
+ALTER TABLE arweb_rate_limits ENABLE ROW LEVEL SECURITY;
+ALTER TABLE arweb_cache ENABLE ROW LEVEL SECURITY;

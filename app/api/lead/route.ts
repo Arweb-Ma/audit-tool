@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { saveLead } from '@/lib/db/leads';
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
-import { getAuditRecord } from '@/lib/audit-store';
+import { verifyAuditToken } from '@/lib/audit-token';
 import { config } from '@/lib/config';
 import { logger } from '@/lib/logger';
 import { LeadSubmissionPayload } from '@/types/audit';
@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const verifiedAudit = getAuditRecord(auditId.trim());
+    const verifiedAudit = verifyAuditToken(auditId.trim());
     if (!verifiedAudit) {
       return NextResponse.json(
         { error: 'Session d\'audit expirée ou introuvable. Veuillez relancer une analyse pour débloquer votre plan d\'action.' },
@@ -73,23 +73,23 @@ export async function POST(req: NextRequest) {
       websiteUrl: verifiedAudit.url,
       auditScore: verifiedAudit.overallScore,
       categoryScores: {
-        seo: verifiedAudit.categoryScores.seo.score,
-        performance: verifiedAudit.categoryScores.performance.score,
-        indexability: verifiedAudit.categoryScores.indexability.score,
-        schema: verifiedAudit.categoryScores.schema.score,
-        mobile: verifiedAudit.categoryScores.mobile.score,
-        security: verifiedAudit.categoryScores.security.score,
-        social: verifiedAudit.categoryScores.social.score,
+        seo: verifiedAudit.categoryScores.seo,
+        performance: verifiedAudit.categoryScores.performance,
+        indexability: verifiedAudit.categoryScores.indexability,
+        schema: verifiedAudit.categoryScores.schema,
+        mobile: verifiedAudit.categoryScores.mobile,
+        security: verifiedAudit.categoryScores.security,
+        social: verifiedAudit.categoryScores.social,
       },
-      topIssues: (verifiedAudit.issues || []).slice(0, 5).map((iss) => ({
+      topIssues: verifiedAudit.issues.slice(0, 5).map((iss) => ({
         title: iss.title,
         severity: iss.severity,
-        evidence: iss.evidence,
+        evidence: iss.evidence ?? '',
       })),
       consentGiven: Boolean(consentGiven),
     };
 
-    // 2. Persist to Supabase / secure local storage
+    // 2. Persist to Supabase
     const { leadId, storageMode } = await saveLead(payload);
 
     // 3. Generate WhatsApp direct message tailored to ARWEB
@@ -103,6 +103,24 @@ export async function POST(req: NextRequest) {
 
     const whatsappNumber = config.arweb.whatsappNumber.replace(/[^0-9]/g, '');
     const whatsappLink = `https://wa.me/${whatsappNumber}?text=${waText}`;
+
+    // Never tell a visitor their request was saved when it was not: offer WhatsApp instead.
+    const stored =
+      storageMode === 'supabase' || (storageMode === 'not-configured' && process.env.NODE_ENV !== 'production');
+    if (!stored) {
+      logger.error('Lead could not be stored; visitor redirected to WhatsApp', {
+        storageMode,
+        website: payload.websiteUrl,
+      });
+      return NextResponse.json(
+        {
+          error: `Nous n'avons pas pu enregistrer votre demande. Envoyez-nous votre audit directement sur WhatsApp (+${whatsappNumber}) ou à ${config.arweb.contactEmail}.`,
+          whatsappLink,
+          contactEmail: config.arweb.contactEmail,
+        },
+        { status: 503 }
+      );
+    }
 
     logger.info('Lead processed successfully', {
       leadId,

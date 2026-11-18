@@ -7,7 +7,8 @@ import { analyzeStructuredData } from '../lib/audit/schema';
 import { computeAuditScores } from '../lib/audit/scoring';
 import { generatePrioritizedIssues } from '../lib/audit/issues';
 import { POST as leadHandler } from '../app/api/lead/route';
-import { createAuditRecord, getAuditRecord } from '../lib/audit-store';
+import { createAuditRecord, getAuditRecord, clearAuditRecordStore } from '../lib/audit-store';
+import { createAuditToken, verifyAuditToken } from '../lib/audit-token';
 import { config } from '../lib/config';
 import { checkRateLimit, getClientIp } from '../lib/rate-limit';
 import { getCachedAudit, setCachedAudit } from '../lib/cache';
@@ -748,6 +749,120 @@ const brokenIssues = generatePrioritizedIssues(
     'Schema parser must NOT recurse past maxDepth (20) to detect DeepAdversarialType at depth 30'
   );
   console.log('  ✓ Schema parser stops recursion at maxDepth without stack overflow\n');
+
+  // --- Test 13: Signed audit tokens (lead form works on any serverless instance) ---
+  console.log('Test 13: Signed Audit Tokens');
+  {
+    const audit: any = {
+      url: 'https://token-site.ma',
+      overallScore: 57,
+      categoryScores: {
+        seo: { score: 60 }, performance: { score: 55 }, indexability: { score: 70 }, schema: { score: 20 },
+        mobile: { score: 80 }, security: { score: 40 }, social: { score: 30 },
+      },
+      issues: Array.from({ length: 8 }, (_, i) => ({ title: `Issue ${i}`, severity: 'high', evidence: 'x'.repeat(1000) })),
+    };
+    const token = createAuditToken(audit);
+    const verified = verifyAuditToken(token)!;
+    assert.ok(verified, 'A fresh token must verify');
+    assert.strictEqual(verified.overallScore, 57);
+    assert.strictEqual(verified.categoryScores.schema, 20);
+    assert.strictEqual(verified.issues.length, 5, 'Only the top 5 issues travel in the token');
+    assert.ok(verified.issues[0].evidence!.length <= 300, 'Evidence is truncated');
+    assert.notStrictEqual(createAuditToken(audit), token, 'Two audits never share a token');
+
+    // Tampering with the score breaks the signature
+    const [body, sig] = token.slice(4).split('.');
+    const payload = JSON.parse(Buffer.from(body, 'base64url').toString());
+    payload.s = 100;
+    const forged = `aud_${Buffer.from(JSON.stringify(payload)).toString('base64url')}.${sig}`;
+    assert.strictEqual(verifyAuditToken(forged), null, 'A modified score must be rejected');
+    assert.strictEqual(verifyAuditToken(token + 'x'), null, 'A modified signature must be rejected');
+    assert.strictEqual(verifyAuditToken('aud_nonexistent123456789'), null, 'Old-style random ids are rejected');
+
+    // Expiry
+    const old = createAuditToken(audit, 60, Date.now() - 2 * 60 * 1000);
+    assert.strictEqual(verifyAuditToken(old), null, 'An expired token must be rejected');
+    console.log('  ✓ Tokens carry the verified score, resist tampering and expire');
+
+    // A different instance (empty memory) still accepts the lead
+    const auditId = createAuditRecord({ ...audit, issues: audit.issues.slice(0, 2) });
+    clearAuditRecordStore();
+    const res = await leadHandler(
+      new NextRequest('http://localhost/api/lead', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', 'x-forwarded-for': '203.0.113.77' },
+        body: JSON.stringify({
+          auditId, name: 'Visiteur Test', email: 'test@example.ma', whatsapp: '+212600000000',
+          sector: 'Retail', consentGiven: true, auditScore: 99,
+        }),
+      })
+    );
+    assert.strictEqual(res.status, 200, 'Lead must be accepted by an instance that never saw the audit');
+    console.log('  ✓ Lead accepted on a fresh instance with no audit in memory\n');
+  }
+
+  // --- Test 14: A lead that cannot be stored is never reported as saved ---
+  console.log('Test 14: Lead Storage Failures Are Visible');
+  {
+    const audit: any = {
+      url: 'https://failing-db.ma', overallScore: 33,
+      categoryScores: {
+        seo: { score: 1 }, performance: { score: 1 }, indexability: { score: 1 }, schema: { score: 1 },
+        mobile: { score: 1 }, security: { score: 1 }, social: { score: 1 },
+      },
+      issues: [],
+    };
+    let inserts = 0;
+    const failingDb = http.createServer((req, res) => {
+      req.resume();
+      req.on('end', () => {
+        if (req.url?.startsWith('/rest/v1/arweb_leads') || req.url?.startsWith('/rest/v1/leads')) inserts++;
+        res.writeHead(req.url?.includes('rate_limits') ? 404 : 500, { 'content-type': 'application/json' });
+        res.end('{"message":"database unavailable"}');
+      });
+    });
+    await new Promise<void>((resolve) => failingDb.listen(0, '127.0.0.1', () => resolve()));
+    const port = (failingDb.address() as any).port;
+    const saved = { url: process.env.SUPABASE_URL, key: process.env.SUPABASE_SERVICE_ROLE_KEY };
+    process.env.SUPABASE_URL = `http://127.0.0.1:${port}`;
+    process.env.SUPABASE_SERVICE_ROLE_KEY = 'mock-test-key';
+    const submit = (ip: string) =>
+      leadHandler(
+        new NextRequest('http://localhost/api/lead', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json', 'x-forwarded-for': ip },
+          body: JSON.stringify({
+            auditId: createAuditToken(audit), name: 'Visiteur Test', email: 'test@example.ma',
+            whatsapp: '+212600000000', consentGiven: true,
+          }),
+        })
+      );
+    try {
+      const res = await submit('203.0.113.88');
+      const data = await res.json();
+      assert.strictEqual(res.status, 503, 'A failed insert must not be reported as success');
+      assert.ok(String(data.whatsappLink).startsWith('https://wa.me/'), 'The visitor gets a WhatsApp fallback');
+      assert.ok(/WhatsApp/.test(data.error), 'The message explains what to do');
+      assert.strictEqual(inserts, 4, 'Each table is tried twice (one retry) before giving up');
+      console.log('  ✓ Database failure returns 503 with a WhatsApp fallback (after one retry)');
+
+      // Production without any database configured must not pretend either
+      delete process.env.SUPABASE_URL;
+      delete process.env.SUPABASE_SERVICE_ROLE_KEY;
+      const env = process.env as Record<string, string | undefined>;
+      const previousEnv = env.NODE_ENV;
+      env.NODE_ENV = 'production';
+      const prodRes = await submit('203.0.113.89');
+      env.NODE_ENV = previousEnv;
+      assert.strictEqual(prodRes.status, 503, 'Production without credentials must not report success');
+      console.log('  ✓ Production without database credentials is reported, not hidden\n');
+    } finally {
+      failingDb.close();
+      if (saved.url === undefined) delete process.env.SUPABASE_URL; else process.env.SUPABASE_URL = saved.url;
+      if (saved.key === undefined) delete process.env.SUPABASE_SERVICE_ROLE_KEY; else process.env.SUPABASE_SERVICE_ROLE_KEY = saved.key;
+    }
+  }
 
   console.log('\n🎉 ALL AUDIT ENGINE UNIT TESTS PASSED SUCCESSFULLY!');
 }

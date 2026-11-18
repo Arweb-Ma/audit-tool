@@ -1,0 +1,27 @@
+name: Keep database awake
+
+# Supabase pauses free projects that receive no requests for a while. While the database is
+# paused, every lead submission fails. One small read every two days keeps it active.
+on:
+  schedule:
+    - cron: '17 6 */2 * *'
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    env:
+      # Public, read-only values: with row-level security on, this key cannot read any lead.
+      SUPABASE_URL: https://torknzatkwwqjawebdna.supabase.co
+      SUPABASE_PUBLISHABLE_KEY: sb_publishable_vzaAnGQc5CVJZterdEMIqg_V-Txrv3q
+    steps:
+      - name: Query the database
+        run: |
+          status=$(curl -s -o /tmp/body -w '%{http_code}' \
+            -H "apikey: $SUPABASE_PUBLISHABLE_KEY" \
+            "$SUPABASE_URL/rest/v1/arweb_leads?select=id&limit=1")
+          echo "HTTP $status: $(head -c 200 /tmp/body)"
+          if [ "$status" != "200" ]; then
+            echo "::error::The audit-tool database did not answer normally (HTTP $status). It may be paused: restore it in the Supabase dashboard, or leads will be lost."
+            exit 1
+          fi

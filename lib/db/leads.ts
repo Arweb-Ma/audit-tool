@@ -2,7 +2,28 @@ import { config } from '../config';
 import { LeadRecord, LeadSubmissionPayload } from '../../types/audit';
 import { logger } from '../logger';
 
-export async function saveLead(payload: LeadSubmissionPayload): Promise<{ leadId: string; storageMode: string }> {
+/**
+ * supabase        saved
+ * not-configured  no database credentials (fine in local development, an error in production)
+ * failed          credentials exist but the insert did not succeed: the lead is NOT stored
+ */
+export type LeadStorageMode = 'supabase' | 'not-configured' | 'failed';
+
+const RETRY_DELAY_MS = 1500;
+
+async function postWithRetry(endpoint: string, init: RequestInit): Promise<Response> {
+  // One retry for network errors and 5xx: a free Supabase project can be slow to wake up.
+  try {
+    const res = await fetch(endpoint, init);
+    if (res.status < 500) return res;
+  } catch (err) {
+    logger.warn('Supabase request failed, retrying once', { error: String(err) });
+  }
+  await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY_MS));
+  return fetch(endpoint, init);
+}
+
+export async function saveLead(payload: LeadSubmissionPayload): Promise<{ leadId: string; storageMode: LeadStorageMode }> {
   const leadId = `lead_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
   const submittedAt = new Date().toISOString();
 
@@ -40,7 +61,7 @@ export async function saveLead(payload: LeadSubmissionPayload): Promise<{ leadId
     for (const tableName of ['arweb_leads', 'leads']) {
       try {
         const endpoint = `${baseUrl}/rest/v1/${tableName}`;
-        const res = await fetch(endpoint, {
+        const res = await postWithRetry(endpoint, {
           method: 'POST',
           headers,
           body: JSON.stringify(leadData),
@@ -73,16 +94,20 @@ export async function saveLead(payload: LeadSubmissionPayload): Promise<{ leadId
         logger.error(`Error connecting to Supabase table ${tableName}`, { error: String(err) });
       }
     }
+
+    logger.error('LEAD NOT STORED: every Supabase table failed', {
+      website: payload.websiteUrl,
+      score: payload.auditScore,
+    });
+    return { leadId, storageMode: 'failed' };
   }
 
-  // 2. Safe development fallback: Log structured event without writing plain files to Git
-  logger.info('Lead captured (development mode - no external DB credentials configured)', {
+  // 2. No database configured (local development). Nothing is written to disk.
+  logger.warn('Lead not stored: SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY are not configured', {
     leadId,
     website: payload.websiteUrl,
     score: payload.auditScore,
-    sector: payload.sector,
-    issuesCount: payload.topIssues?.length || 0,
   });
 
-  return { leadId, storageMode: 'local-safe' };
+  return { leadId, storageMode: 'not-configured' };
 }

@@ -36,6 +36,7 @@ export const LeadCaptureModal: React.FC<LeadCaptureModalProps> = ({
   const [consentGiven, setConsentGiven] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+  const [fallbackLink, setFallbackLink] = useState('');
 
   // Close modal on Escape key
   useEffect(() => {
@@ -64,6 +65,7 @@ export const LeadCaptureModal: React.FC<LeadCaptureModalProps> = ({
 
     setIsSubmitting(true);
     setErrorMsg('');
+    setFallbackLink('');
 
     try {
       const res = await fetch('/api/lead', {
@@ -98,6 +100,9 @@ export const LeadCaptureModal: React.FC<LeadCaptureModalProps> = ({
 
       const data = await res.json();
       if (!res.ok) {
+        if (typeof data.whatsappLink === 'string' && data.whatsappLink.startsWith('https://wa.me/')) {
+          setFallbackLink(data.whatsappLink);
+        }
         throw new Error(data.error || 'Échec de l\'envoi.');
       }
 
@@ -233,6 +238,16 @@ export const LeadCaptureModal: React.FC<LeadCaptureModalProps> = ({
             </div>
 
             {errorMsg && <p className="text-xs text-[#b3261e] font-medium pt-1">{errorMsg}</p>}
+            {fallbackLink && (
+              <a
+                href={fallbackLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block w-full text-center rounded-full border border-[#1e8e3e] text-[#1e8e3e] font-bold py-3"
+              >
+                Envoyer mon audit sur WhatsApp
+              </a>
+            )}
 
             {/* Submit Button */}
             <button

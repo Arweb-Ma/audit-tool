@@ -29,6 +29,9 @@ PAGESPEED_API_KEY=""
 SUPABASE_URL=""
 SUPABASE_SERVICE_ROLE_KEY=""
 
+# Optionnel : secret de signature des audits (sinon dérivé de SUPABASE_SERVICE_ROLE_KEY)
+AUDIT_SIGNING_SECRET=""
+
 # Sécurité & Rate Limiting (options avec valeurs par défaut de production)
 RATE_LIMIT_AUDITS_PER_HOUR=10
 RATE_LIMIT_LEADS_PER_HOUR=5
@@ -92,3 +95,10 @@ Pour lancer le serveur de test local :
 ```bash
 npm run start
 ```
+
+## Fiabilité de la capture de leads
+
+- **Audits signés** : l'identifiant d'audit (`aud_…`) est un jeton signé (HMAC-SHA256) qui contient le score vérifié. N'importe quelle fonction Netlify peut le vérifier, sans mémoire partagée : un visiteur qui remplit le formulaire plusieurs minutes après l'audit n'est plus rejeté. Le jeton est valable 24 h.
+- **Aucun faux succès** : si un lead ne peut pas être enregistré (base en pause, clés absentes en production, erreur Supabase), le visiteur reçoit une erreur claire et un bouton WhatsApp pré-rempli au lieu d'un message de succès. Une nouvelle tentative est faite automatiquement en cas d'erreur réseau ou 5xx.
+- **Base toujours active** : le workflow `.github/workflows/keep-db-awake.yml` interroge la base tous les deux jours pour éviter la mise en pause du plan gratuit Supabase, et échoue (notification GitHub) si la base ne répond pas.
+- **Tables** : `lib/db/schema.sql` doit être appliqué en entier (`arweb_leads`, `arweb_rate_limits`, `arweb_cache`). La sécurité au niveau des lignes (RLS) est activée sans politique : seule la clé `service_role` du serveur y accède.
