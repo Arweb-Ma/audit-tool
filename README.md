@@ -77,3 +77,16 @@ Consultez [PRODUCTION-READINESS.md](./PRODUCTION-READINESS.md) pour les instruct
 - **Agence** : [ARWEB](https://arweb.ma) (Casablanca, Maroc)
 - **WhatsApp direct** : `+212 665 016 504`
 - **Email** : `contact@arweb.ma`
+---
+
+## 🔎 SEO & suivi des conversions
+
+- Pages indexables : `/` (audit complet) et 3 pages d'atterrissage définies dans `lib/site.ts` (`LANDING_PAGES`) — ajouter une entrée crée automatiquement la page, son entrée au sitemap, ses métadonnées et son JSON-LD.
+- `app/robots.ts` et `app/sitemap.ts` génèrent `/robots.txt` et `/sitemap.xml` pour `audit.arweb.ma`.
+- Suivi du funnel (`lib/analytics.ts`) : `audit_started`, `audit_completed`, `audit_failed`, `lead_modal_opened`, `lead_submitted`, `lead_failed`, `whatsapp_clicked`, `email_clicked`. Les événements sont toujours poussés dans `window.dataLayer` ; activez un fournisseur avec l'une des variables :
+
+| Variable | Effet |
+|---|---|
+| `NEXT_PUBLIC_GA_ID` | Charge GA4 (ex. `G-XXXXXXX`) |
+| `NEXT_PUBLIC_PLAUSIBLE_DOMAIN` | Charge Plausible (ex. `audit.arweb.ma`) |
+| `NEXT_PUBLIC_SITE_URL` | Origine canonique (défaut `https://audit.arweb.ma`) |

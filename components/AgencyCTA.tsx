@@ -1,7 +1,7 @@
-'use client';
-
 import React from 'react';
-import { Mail, MessageSquare, ArrowRight } from 'lucide-react';
+import Link from 'next/link';
+import { Mail } from 'lucide-react';
+import { LANDING_PAGES } from '@/lib/site';
 
 export const AgencyCTA: React.FC = () => {
   return (
@@ -42,6 +42,13 @@ export const AgencyCTA: React.FC = () => {
             </a>
             <span>· Agence digitale au Maroc et dans la région MENA.</span>
           </div>
+
+          <nav aria-label="Outils gratuits" className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-[#5f6368] font-medium">
+            <Link href="/" className="hover:text-[#0b57d0]">Audit SEO gratuit</Link>
+            {LANDING_PAGES.map((p) => (
+              <Link key={p.slug} href={`/${p.slug}`} className="hover:text-[#0b57d0]">{p.navLabel}</Link>
+            ))}
+          </nav>
 
           <div className="flex items-center space-x-6 text-[#5f6368] font-medium">
             <a href="https://arweb.ma" target="_blank" rel="noopener noreferrer" className="hover:text-[#0b57d0]">

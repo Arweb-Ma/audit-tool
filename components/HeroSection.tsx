@@ -7,11 +7,14 @@ import { motion } from 'framer-motion';
 interface HeroSectionProps {
   onAnalyze: (url: string) => void;
   isLoading: boolean;
+  overline: string;
+  title: React.ReactNode;
+  subtitle: string;
 }
 
 const SAMPLE_URLS = ['arweb.ma', 'wikipedia.org', 'google.com'];
 
-export const HeroSection: React.FC<HeroSectionProps> = ({ onAnalyze, isLoading }) => {
+export const HeroSection: React.FC<HeroSectionProps> = ({ onAnalyze, isLoading, overline, title, subtitle }) => {
   const [inputUrl, setInputUrl] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
 
@@ -35,48 +38,29 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onAnalyze, isLoading }
     <section className="relative pt-12 pb-16 md:pt-16 md:pb-20 overflow-hidden" id="audit-form">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
         {/* Overline Badge */}
-        <motion.p
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4 }}
-          className="overline"
-        >
-          Agence digitale · Maroc & MENA
-        </motion.p>
+        <p className="overline">{overline}</p>
 
         {/* Main Heading */}
-        <motion.h1
-          initial={{ opacity: 0, y: 15 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.1 }}
-          className="text-4xl sm:text-6xl lg:text-7xl font-normal tracking-[-0.045em] leading-[1.06] text-[#202124] mb-6 max-w-4xl mx-auto"
-        >
-          Faites de votre présence en ligne un moteur de <span className="text-[#0b57d0]">croissance.</span>
-        </motion.h1>
+        <h1 className="text-4xl sm:text-6xl lg:text-7xl font-normal tracking-[-0.045em] leading-[1.06] text-[#202124] mb-6 max-w-4xl mx-auto">
+          {title}
+        </h1>
 
         {/* Subtitle */}
-        <motion.p
-          initial={{ opacity: 0, y: 15 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-          className="text-lg sm:text-xl text-[#5f6368] max-w-2xl mx-auto mb-8 leading-relaxed font-normal"
-        >
-          Découvrez instantanément les freins de vitesse mobile, de SEO multilingue et d'indexation IA qui ralentissent vos conversions.
-        </motion.p>
+        <p className="text-lg sm:text-xl text-[#5f6368] max-w-2xl mx-auto mb-8 leading-relaxed font-normal">
+          {subtitle}
+        </p>
 
         {/* URL Input Form */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.3 }}
-          className="max-w-2xl mx-auto mb-4"
-        >
+        <div className="max-w-2xl mx-auto mb-4">
           <form onSubmit={handleSubmit} className="relative">
             <div className="flex flex-col sm:flex-row items-center p-2 rounded-full bg-white border border-[#dadce0] focus-within:border-[#0b57d0] focus-within:ring-4 focus-within:ring-[#0b57d0]/15 shadow-sm transition-all duration-200">
               <div className="flex items-center w-full pl-4 pr-2 py-2 sm:py-0">
                 <Globe className="w-5 h-5 text-[#5f6368] mr-3 flex-shrink-0" />
                 <input
                   type="text"
+                  inputMode="url"
+                  autoComplete="url"
+                  aria-label="Adresse de votre site web"
                   value={inputUrl}
                   onChange={(e) => {
                     setInputUrl(e.target.value);
@@ -116,9 +100,9 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onAnalyze, isLoading }
           )}
 
           <p className="text-xs text-[#5f6368] mt-3 font-normal">
-            Sans engagement · Analyse instantanée des Core Web Vitals & SEO
+            Gratuit · Sans inscription · Résultat en 30 secondes
           </p>
-        </motion.div>
+        </div>
 
         {/* Sample URLs */}
         <motion.div

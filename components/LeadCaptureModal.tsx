@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Lock, X, ArrowRight, ShieldCheck, User, Mail, Phone, Building2, CheckSquare, Square } from 'lucide-react';
 import { AuditResult } from '@/types/audit';
+import { track } from '@/lib/analytics';
 
 interface LeadCaptureModalProps {
   isOpen: boolean;
@@ -108,6 +109,7 @@ export const LeadCaptureModal: React.FC<LeadCaptureModalProps> = ({
 
       onSuccess({ whatsappLink: data.whatsappLink });
     } catch (err: any) {
+      track('lead_failed');
       setErrorMsg(err.message || 'Erreur lors de l\'envoi. Veuillez réessayer.');
     } finally {
       setIsSubmitting(false);

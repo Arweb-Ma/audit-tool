@@ -3,9 +3,8 @@
   Referrer-Policy: strict-origin-when-cross-origin
   X-Frame-Options: DENY
   Permissions-Policy: camera=(), microphone=(), geolocation=()
-/_astro/*
+  Strict-Transport-Security: max-age=31536000; includeSubDomains
+/_next/static/*
   Cache-Control: public, max-age=31536000, immutable
-/404.html
-  X-Robots-Tag: noindex
-/merci/*
-  X-Robots-Tag: noindex
+/og.png
+  Cache-Control: public, max-age=86400

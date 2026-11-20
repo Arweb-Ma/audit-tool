@@ -5,15 +5,18 @@ import { motion } from 'framer-motion';
 import { CheckCircle2, MessageSquare, Sparkles, FileText, Mail, Printer } from 'lucide-react';
 import { AuditResult } from '@/types/audit';
 import { config } from '@/lib/config';
+import { track } from '@/lib/analytics';
 
 interface LeadSuccessStateProps {
   auditResult: AuditResult;
   whatsappLink: string;
+  source?: string;
 }
 
 export const LeadSuccessState: React.FC<LeadSuccessStateProps> = ({
   auditResult,
   whatsappLink,
+  source = 'home',
 }) => {
   const directWhatsappUrl = whatsappLink || `https://wa.me/${config.arweb.whatsappNumber}?text=${encodeURIComponent(`Bonjour Arweb, j'ai réalisé un audit de ${auditResult.domain} (score ${auditResult.overallScore}/100) et je souhaite échanger sur mon plan d'action.`)}`;
 
@@ -50,6 +53,7 @@ export const LeadSuccessState: React.FC<LeadSuccessStateProps> = ({
           </button>
           <a
             href={directWhatsappUrl}
+            onClick={() => track('whatsapp_clicked', { source })}
             target="_blank"
             rel="noopener noreferrer"
             className="w-full sm:w-auto button button-compact bg-[#137333] border-[#137333] hover:bg-[#0d5926] text-white font-bold text-xs sm:text-sm flex items-center justify-center space-x-2"
@@ -107,6 +111,7 @@ export const LeadSuccessState: React.FC<LeadSuccessStateProps> = ({
         <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
           <a
             href="mailto:contact@arweb.ma?subject=Diagnostic%20de%20performance%20Arweb"
+            onClick={() => track('email_clicked', { source })}
             className="button button-compact text-sm w-full sm:w-auto justify-center"
           >
             <Mail className="w-4 h-4 mr-2" />
